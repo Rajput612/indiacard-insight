@@ -16,12 +16,23 @@ type SpendingDetailStepProps = {
 };
 
 const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailStepProps) => {
+  // Level 1: Online/Offline
   const [category, setCategory] = useState<"online" | "offline">("online");
-  const [subcategory, setSubcategory] = useState("");
-  const [specificCategory, setSpecificCategory] = useState("");
-  const [brand, setBrand] = useState("");
+  
+  // Level 2: Platform (App/Website/Store)
   const [platform, setPlatform] = useState<Platform>("website");
   const [platformName, setPlatformName] = useState("");
+  
+  // Level 3: Category
+  const [subcategory, setSubcategory] = useState("");
+  
+  // Level 4: Subcategory
+  const [specificCategory, setSpecificCategory] = useState("");
+  
+  // Level 5: Brand
+  const [brand, setBrand] = useState("");
+  
+  // Amount and frequency
   const [amount, setAmount] = useState("");
   const [frequency, setFrequency] = useState<"monthly" | "yearly" | "one-time" | "daily" | "weekly" | "quarterly">("monthly");
 
@@ -42,11 +53,26 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
 
     addEntry(newEntry);
     
-    // Reset form
+    // Reset form fields after adding entry
     setSpecificCategory("");
     setBrand("");
     setPlatformName("");
     setAmount("");
+  };
+
+  // Reset platform when category changes
+  const handleCategoryChange = (value: "online" | "offline") => {
+    setCategory(value);
+    // Reset platform based on category
+    if (value === "online") {
+      setPlatform("website");
+    } else {
+      setPlatform("store");
+    }
+    // Reset other fields
+    setSubcategory("");
+    setBrand("");
+    setSpecificCategory("");
   };
 
   return (
@@ -54,25 +80,18 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-navy mb-2">Add Your Spending Details</h2>
         <p className="text-gray-600">
-          Add each spending category individually. You can add as many or as few as you like.
+          Add each spending category individually. You can add as many as you like to see personalized recommendations.
         </p>
       </div>
 
       <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
         <div className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
+          {/* Level 1: Online/Offline */}
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="category">Type of Spending</Label>
             <Select 
               value={category} 
-              onValueChange={(value) => {
-                setCategory(value as "online" | "offline");
-                // Reset platform based on category
-                if (value === "online") {
-                  setPlatform("website");
-                } else {
-                  setPlatform("store");
-                }
-              }}
+              onValueChange={(value) => handleCategoryChange(value as "online" | "offline")}
             >
               <SelectTrigger id="category">
                 <SelectValue placeholder="Select Category" />
@@ -84,75 +103,8 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="subcategory">Subcategory</Label>
-            <Select 
-              value={subcategory} 
-              onValueChange={setSubcategory}
-            >
-              <SelectTrigger id="subcategory">
-                <SelectValue placeholder="Select Subcategory" />
-              </SelectTrigger>
-              <SelectContent>
-                {category === "online" ? (
-                  <>
-                    <SelectItem value="electronics">Electronics</SelectItem>
-                    <SelectItem value="fashion">Fashion</SelectItem>
-                    <SelectItem value="groceries">Groceries</SelectItem>
-                    <SelectItem value="homeGoods">Home Goods</SelectItem>
-                    <SelectItem value="travel">Travel</SelectItem>
-                    <SelectItem value="entertainment">Entertainment</SelectItem>
-                    <SelectItem value="other">Miscellaneous</SelectItem>
-                  </>
-                ) : (
-                  <>
-                    <SelectItem value="foodAndBeverages">Food & Beverages</SelectItem>
-                    <SelectItem value="transport">Transport</SelectItem>
-                    <SelectItem value="housingAndUtilities">Housing & Utilities</SelectItem>
-                    <SelectItem value="healthcare">Healthcare</SelectItem>
-                    <SelectItem value="education">Education</SelectItem>
-                    <SelectItem value="entertainment">Entertainment</SelectItem>
-                    <SelectItem value="other">Miscellaneous</SelectItem>
-                  </>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="specific-category">Specific Category (Optional)</Label>
-            <Input
-              id="specific-category"
-              placeholder="e.g., Smartphones, Clothing"
-              value={specificCategory}
-              onChange={(e) => setSpecificCategory(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="brand">Brand (Optional)</Label>
-            <Select 
-              value={brand} 
-              onValueChange={setBrand}
-            >
-              <SelectTrigger id="brand">
-                <SelectValue placeholder="Select Brand" />
-              </SelectTrigger>
-              <SelectContent>
-                {subcategory && brands[subcategory as keyof typeof brands] ? (
-                  brands[subcategory as keyof typeof brands].map((brandName) => (
-                    <SelectItem key={brandName} value={brandName}>
-                      {brandName}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="other">Other</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
+          {/* Level 2: Platform (App/Website/Store) */}
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="platform">Platform</Label>
             <Select 
               value={platform} 
@@ -197,7 +149,8 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
             </Select>
           </div>
 
-          <div className="space-y-2">
+          {/* Level 2.5: Platform Name */}
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="platform-name">
               {platform === 'app' ? 'App Name' : 
                platform === 'website' ? 'Website Name' : 
@@ -211,6 +164,78 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
             />
           </div>
 
+          {/* Level 3: Category */}
+          <div className="space-y-2">
+            <Label htmlFor="subcategory">Category</Label>
+            <Select 
+              value={subcategory} 
+              onValueChange={setSubcategory}
+            >
+              <SelectTrigger id="subcategory">
+                <SelectValue placeholder="Select Category" />
+              </SelectTrigger>
+              <SelectContent>
+                {category === "online" ? (
+                  <>
+                    <SelectItem value="electronics">Electronics</SelectItem>
+                    <SelectItem value="fashion">Fashion</SelectItem>
+                    <SelectItem value="groceries">Groceries</SelectItem>
+                    <SelectItem value="homeGoods">Home Goods</SelectItem>
+                    <SelectItem value="travel">Travel</SelectItem>
+                    <SelectItem value="entertainment">Entertainment</SelectItem>
+                    <SelectItem value="other">Miscellaneous</SelectItem>
+                  </>
+                ) : (
+                  <>
+                    <SelectItem value="foodAndBeverages">Food & Beverages</SelectItem>
+                    <SelectItem value="transport">Transport</SelectItem>
+                    <SelectItem value="housingAndUtilities">Housing & Utilities</SelectItem>
+                    <SelectItem value="healthcare">Healthcare</SelectItem>
+                    <SelectItem value="education">Education</SelectItem>
+                    <SelectItem value="entertainment">Entertainment</SelectItem>
+                    <SelectItem value="other">Miscellaneous</SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Level 4: Subcategory */}
+          <div className="space-y-2">
+            <Label htmlFor="specific-category">Subcategory (Optional)</Label>
+            <Input
+              id="specific-category"
+              placeholder="e.g., Smartphones, Clothing"
+              value={specificCategory}
+              onChange={(e) => setSpecificCategory(e.target.value)}
+            />
+          </div>
+
+          {/* Level 5: Brand */}
+          <div className="space-y-2">
+            <Label htmlFor="brand">Brand (Optional)</Label>
+            <Select 
+              value={brand} 
+              onValueChange={setBrand}
+            >
+              <SelectTrigger id="brand">
+                <SelectValue placeholder="Select Brand" />
+              </SelectTrigger>
+              <SelectContent>
+                {subcategory && brands[subcategory as keyof typeof brands] ? (
+                  brands[subcategory as keyof typeof brands].map((brandName) => (
+                    <SelectItem key={brandName} value={brandName}>
+                      {brandName}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="other">Other</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Amount and Frequency */}
           <div className="space-y-2">
             <Label htmlFor="amount">Amount (₹)</Label>
             <Input
@@ -261,7 +286,7 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
             <p className="text-gray-500">No spending entries added yet. Add your first one above.</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
             {entries.map((entry) => (
               <div 
                 key={entry.id} 
@@ -278,12 +303,9 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     <span className="capitalize">{entry.category}</span>
+                    {entry.platform && ` • ${platform === 'app' ? 'App' : platform === 'website' ? 'Website' : platform === 'store' ? 'Store' : 'Platform'}`}
+                    {entry.platformName && `: ${entry.platformName}`}
                     {entry.brand && ` • ${entry.brand}`}
-                    {entry.platform && entry.platformName && (
-                      <span> • {entry.platform === 'app' ? 'App' : 
-                              entry.platform === 'website' ? 'Website' : 
-                              entry.platform === 'store' ? 'Store' : 'Platform'}: {entry.platformName}</span>
-                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
