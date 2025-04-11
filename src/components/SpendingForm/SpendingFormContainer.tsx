@@ -1,19 +1,20 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { SpendingEntry, SpendingProfile } from "@/types/spending";
+import { SpendingEntry } from "@/types/spending";
 import { findBestCreditCards } from "@/data/creditCards";
 import SpendingCategoryStep from "./SpendingCategoryStep";
 import SpendingDetailStep from "./SpendingDetailStep";
 import CreditCardRecommendations from "../CreditCardRecommendations";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, CreditCard } from "lucide-react";
+import { ArrowLeft, ArrowRight, RotateCw } from "lucide-react";
 
 const SpendingFormContainer = () => {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [spendingEntries, setSpendingEntries] = useState<SpendingEntry[]>([]);
   const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [isCalculating, setIsCalculating] = useState(false);
   
   const addSpendingEntry = (entry: SpendingEntry) => {
     setSpendingEntries((prev) => [...prev, entry]);
@@ -23,13 +24,27 @@ const SpendingFormContainer = () => {
     setSpendingEntries((prev) => prev.filter(entry => entry.id !== id));
   };
 
+  // Calculate recommendations whenever spending entries change
+  useEffect(() => {
+    if (spendingEntries.length === 0) {
+      setRecommendations([]);
+      return;
+    }
+    
+    setIsCalculating(true);
+    
+    // Small delay to show calculation is happening
+    const timer = setTimeout(() => {
+      generateRecommendations();
+      setIsCalculating(false);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [spendingEntries]);
+
   const generateRecommendations = () => {
     if (spendingEntries.length === 0) {
-      toast({
-        title: "No spending data",
-        description: "Please add at least one spending entry to get recommendations.",
-        variant: "destructive"
-      });
+      setRecommendations([]);
       return;
     }
     
@@ -82,15 +97,6 @@ const SpendingFormContainer = () => {
       categoryPercentages[category] = (amount / totalMonthly) * 100;
     });
     
-    // Create spending profile for recommendation engine
-    const spendingProfile = {
-      entries: spendingEntries,
-      totalMonthlySpending: totalMonthly,
-      onlinePercentage,
-      offlinePercentage: 100 - onlinePercentage,
-      categories: categoryPercentages
-    };
-    
     // Get recommendations
     const recommendedCards = findBestCreditCards({
       onlinePercentage,
@@ -98,20 +104,11 @@ const SpendingFormContainer = () => {
     });
     
     setRecommendations(recommendedCards);
-    setStep(3);
-    
-    toast({
-      title: "Recommendations Ready!",
-      description: "We've found the best credit cards for your spending pattern.",
-      variant: "default"
-    });
   };
 
   const nextStep = () => {
     if (step === 1) {
       setStep(2);
-    } else if (step === 2) {
-      generateRecommendations();
     }
   };
 
@@ -121,43 +118,70 @@ const SpendingFormContainer = () => {
     }
   };
 
+  const renderCurrentStep = () => {
+    if (step === 1) {
+      return <SpendingCategoryStep />;
+    } else {
+      return (
+        <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <SpendingDetailStep 
+              entries={spendingEntries} 
+              addEntry={addSpendingEntry} 
+              removeEntry={removeSpendingEntry}
+            />
+          </div>
+          
+          <div className="relative">
+            {isCalculating && (
+              <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 rounded-lg">
+                <div className="flex items-center gap-2 bg-navy text-white px-4 py-2 rounded-lg">
+                  <RotateCw className="h-4 w-4 animate-spin" />
+                  <span>Updating recommendations...</span>
+                </div>
+              </div>
+            )}
+            
+            <div className={`transition-opacity duration-300 ${isCalculating ? 'opacity-50' : 'opacity-100'}`}>
+              {spendingEntries.length > 0 ? (
+                <CreditCardRecommendations recommendations={recommendations} />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full min-h-[300px] bg-gray-50 rounded-lg border border-dashed border-gray-300 p-6">
+                  <h3 className="text-xl font-bold text-navy mb-2">Add spending details</h3>
+                  <p className="text-gray-600 text-center mb-4">
+                    Start adding your spending habits to see personalized credit card recommendations.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+  };
+
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6 my-8 animate-fade-in">
+    <div className="w-full max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-6 my-8 animate-fade-in">
       {/* Progress indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-500">Step {step} of 3</span>
+          <span className="text-sm text-gray-500">Step {step} of 2</span>
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-500">
-              {step === 1 ? "Select Categories" : step === 2 ? "Add Spending Details" : "View Recommendations"}
+              {step === 1 ? "Select Categories" : "Add Spending Details"}
             </span>
-            <CreditCard className="h-4 w-4 text-navy" />
           </div>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2.5">
           <div 
             className="bg-gradient-to-r from-navy to-slate-blue h-2.5 rounded-full transition-all duration-300 ease-in-out" 
-            style={{ width: `${(step / 3) * 100}%` }}
+            style={{ width: `${(step / 2) * 100}%` }}
           ></div>
         </div>
       </div>
 
       {/* Form steps */}
-      {step === 1 && (
-        <SpendingCategoryStep />
-      )}
-      
-      {step === 2 && (
-        <SpendingDetailStep 
-          entries={spendingEntries} 
-          addEntry={addSpendingEntry} 
-          removeEntry={removeSpendingEntry}
-        />
-      )}
-      
-      {step === 3 && (
-        <CreditCardRecommendations recommendations={recommendations} />
-      )}
+      {renderCurrentStep()}
 
       {/* Navigation buttons */}
       <div className="flex justify-between mt-8">
@@ -172,12 +196,12 @@ const SpendingFormContainer = () => {
           </Button>
         )}
         
-        {step < 3 && (
+        {step === 1 && (
           <Button 
             onClick={nextStep}
             className="ml-auto bg-navy hover:bg-navy/90 text-white flex items-center gap-2"
           >
-            {step === 2 ? "Get Recommendations" : "Next"}
+            Next
             <ArrowRight className="h-4 w-4" />
           </Button>
         )}
