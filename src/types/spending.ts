@@ -24,6 +24,9 @@ export type Brand = {
   category: string;
 };
 
+// Platform types
+export type Platform = 'app' | 'website' | 'store' | 'other';
+
 // Spending entry
 export type SpendingEntry = {
   id: string;
@@ -31,6 +34,8 @@ export type SpendingEntry = {
   subcategory: OnlineSubcategory | OfflineSubcategory;
   specificCategory?: string;
   brand?: string;
+  platform?: Platform;
+  platformName?: string;
   amount: number;
   frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'one-time';
 };

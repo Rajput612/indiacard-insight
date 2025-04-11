@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SpendingEntry } from "@/types/spending";
+import { SpendingEntry, Platform } from "@/types/spending";
 import { brands } from "@/data/creditCards";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Globe, Smartphone, Store } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
 type SpendingDetailStepProps = {
@@ -20,6 +20,8 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
   const [subcategory, setSubcategory] = useState("");
   const [specificCategory, setSpecificCategory] = useState("");
   const [brand, setBrand] = useState("");
+  const [platform, setPlatform] = useState<Platform>("website");
+  const [platformName, setPlatformName] = useState("");
   const [amount, setAmount] = useState("");
   const [frequency, setFrequency] = useState<"monthly" | "yearly" | "one-time" | "daily" | "weekly" | "quarterly">("monthly");
 
@@ -32,6 +34,8 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
       subcategory: subcategory as any,
       specificCategory: specificCategory || undefined,
       brand: brand || undefined,
+      platform: platform,
+      platformName: platformName || undefined,
       amount: parseFloat(amount),
       frequency: frequency as any,
     };
@@ -41,6 +45,7 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
     // Reset form
     setSpecificCategory("");
     setBrand("");
+    setPlatformName("");
     setAmount("");
   };
 
@@ -59,7 +64,15 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
             <Label htmlFor="category">Category</Label>
             <Select 
               value={category} 
-              onValueChange={(value) => setCategory(value as "online" | "offline")}
+              onValueChange={(value) => {
+                setCategory(value as "online" | "offline");
+                // Reset platform based on category
+                if (value === "online") {
+                  setPlatform("website");
+                } else {
+                  setPlatform("store");
+                }
+              }}
             >
               <SelectTrigger id="category">
                 <SelectValue placeholder="Select Category" />
@@ -89,7 +102,7 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
                     <SelectItem value="homeGoods">Home Goods</SelectItem>
                     <SelectItem value="travel">Travel</SelectItem>
                     <SelectItem value="entertainment">Entertainment</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="other">Miscellaneous</SelectItem>
                   </>
                 ) : (
                   <>
@@ -99,7 +112,7 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
                     <SelectItem value="healthcare">Healthcare</SelectItem>
                     <SelectItem value="education">Education</SelectItem>
                     <SelectItem value="entertainment">Entertainment</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="other">Miscellaneous</SelectItem>
                   </>
                 )}
               </SelectContent>
@@ -137,6 +150,65 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
                 )}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="platform">Platform</Label>
+            <Select 
+              value={platform} 
+              onValueChange={(value) => setPlatform(value as Platform)}
+            >
+              <SelectTrigger id="platform">
+                <SelectValue placeholder="Select Platform" />
+              </SelectTrigger>
+              <SelectContent>
+                {category === "online" ? (
+                  <>
+                    <SelectItem value="app">
+                      <div className="flex items-center">
+                        <Smartphone className="h-4 w-4 mr-2" />
+                        <span>App</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="website">
+                      <div className="flex items-center">
+                        <Globe className="h-4 w-4 mr-2" />
+                        <span>Website</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="other">
+                      <span>Miscellaneous</span>
+                    </SelectItem>
+                  </>
+                ) : (
+                  <>
+                    <SelectItem value="store">
+                      <div className="flex items-center">
+                        <Store className="h-4 w-4 mr-2" />
+                        <span>Store</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="other">
+                      <span>Miscellaneous</span>
+                    </SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="platform-name">
+              {platform === 'app' ? 'App Name' : 
+               platform === 'website' ? 'Website Name' : 
+               platform === 'store' ? 'Store Name' : 'Name'} (Optional)
+            </Label>
+            <Input
+              id="platform-name"
+              placeholder={`Enter ${platform === 'app' ? 'app' : platform === 'website' ? 'website' : platform === 'store' ? 'store' : ''} name`}
+              value={platformName}
+              onChange={(e) => setPlatformName(e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
@@ -207,6 +279,11 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
                   <div className="text-xs text-gray-500 mt-1">
                     <span className="capitalize">{entry.category}</span>
                     {entry.brand && ` • ${entry.brand}`}
+                    {entry.platform && entry.platformName && (
+                      <span> • {entry.platform === 'app' ? 'App' : 
+                              entry.platform === 'website' ? 'Website' : 
+                              entry.platform === 'store' ? 'Store' : 'Platform'}: {entry.platformName}</span>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
