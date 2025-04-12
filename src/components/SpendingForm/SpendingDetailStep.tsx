@@ -281,6 +281,27 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
         </Select>
       </div>
 
+      {/* Brand Selection */}
+      <div className="space-y-2">
+        <Label htmlFor="brand">Brand (Optional)</Label>
+        <Select 
+          value={brand} 
+          onValueChange={setBrand}
+          disabled={availableBrands.length === 0}
+        >
+          <SelectTrigger id="brand">
+            <SelectValue placeholder="Select Brand" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableBrands.map(brandName => (
+              <SelectItem key={brandName} value={brandName}>
+                {brandName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="amount">Amount (₹)</Label>
         <Input
