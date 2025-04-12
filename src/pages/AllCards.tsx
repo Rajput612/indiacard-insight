@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Check, CreditCard, Sparkles } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { creditCards } from "@/data/creditCards";
+import CreditCardBanner from "@/components/CreditCardBanner";
 
 const AllCards = () => {
   const [filter, setFilter] = useState<string>("all");
@@ -63,41 +64,9 @@ const AllCards = () => {
                     </CardHeader>
                     
                     <CardContent className="flex-grow py-3">
-                      {/* Credit Card Banner Design - Similar to Hero component */}
-                      <div className="relative mb-6">
-                        <div className="absolute -top-2 -right-2 bg-gold text-navy rounded-full p-2 z-10">
-                          <Sparkles className="h-4 w-4" />
-                        </div>
-                        
-                        <div className="bg-white rounded-xl p-2 shadow-md transform rotate-1 transition-transform hover:rotate-0">
-                          <div className="bg-gradient-to-br from-slate-800 to-navy rounded-lg p-4 w-full h-36 flex flex-col justify-between">
-                            <div className="flex justify-between items-start">
-                              <CreditCard className="h-6 w-6 text-gold" />
-                              <div className="text-right text-white">
-                                <p className="text-xs opacity-80">{card.issuer}</p>
-                                <p className="text-sm font-bold">{card.name}</p>
-                              </div>
-                            </div>
-                            
-                            <div className="text-white">
-                              <div className="mb-1">
-                                <p className="text-xs opacity-80">Card Number</p>
-                                <p className="font-mono text-sm">•••• •••• •••• {Math.floor(1000 + Math.random() * 9000)}</p>
-                              </div>
-                              
-                              <div className="flex justify-between items-center">
-                                <div>
-                                  <p className="text-xs opacity-80">Card Holder</p>
-                                  <p className="font-medium text-sm">YOU</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs opacity-80">Expires</p>
-                                  <p className="font-medium text-sm">04/29</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                      {/* Using the new CreditCardBanner component */}
+                      <div className="mb-6">
+                        <CreditCardBanner card={card} size="md" />
                       </div>
                       
                       <div className="space-y-3">

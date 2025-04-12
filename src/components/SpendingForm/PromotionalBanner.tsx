@@ -1,9 +1,13 @@
-import { useState } from 'react';
-import { ArrowRight, X, Clock, ThumbsUp, Star, CreditCard, ShoppingCart, Zap } from 'lucide-react';
 
+import { useState } from 'react';
+import { ArrowRight, X, Clock, ThumbsUp, Star, ShoppingCart, Zap } from 'lucide-react';
+import { creditCards } from '@/data/creditCards';
+
+// Map credit cards to promotions
 const promotions = [
   {
     id: 1,
+    card: creditCards.find(card => card.id === "1"), // Premium Rewards Gold
     title: "New Launch: Premium Rewards Gold",
     description: "Introducing the new Premium Rewards Gold card with enhanced travel benefits",
     type: "new",
@@ -13,6 +17,7 @@ const promotions = [
   },
   {
     id: 2,
+    card: creditCards.find(card => card.id === "3"), // Everyday Rewards
     title: "High Approval Rate: Everyday Rewards",
     description: "Everyday Rewards has a 90% approval rate for new applicants",
     type: "approval",
@@ -22,6 +27,7 @@ const promotions = [
   },
   {
     id: 3,
+    card: creditCards.find(card => card.id === "2"), // ShopMore Platinum
     title: "Limited Time Offer: ShopMore Platinum",
     description: "Zero joining fee for the next 30 days on ShopMore Platinum",
     type: "limited",
@@ -31,6 +37,7 @@ const promotions = [
   },
   {
     id: 4,
+    card: creditCards.find(card => card.id === "5"), // Digital First
     title: "Amazon ICICI Credit Card",
     description: "Unlimited 5% cashback on all Amazon purchases for Prime members",
     type: "partner",
@@ -40,15 +47,17 @@ const promotions = [
   },
   {
     id: 5,
+    card: creditCards.find(card => card.id === "2"), // ShopMore Platinum
     title: "Flipkart Axis Bank Credit Card",
     description: "Earn 5% unlimited cashback on Flipkart, Myntra and Cleartrip",
     type: "partner",
-    icon: <CreditCard className="h-5 w-5 text-indigo-500" />,
+    icon: <ShoppingCart className="h-5 w-5 text-indigo-500" />,
     bgColor: "bg-gradient-to-r from-indigo-50 to-blue-100",
     borderColor: "border-indigo-200"
   },
   {
     id: 6,
+    card: creditCards.find(card => card.id === "4"), // Travel Elite
     title: "HDFC Infinia Metal Edition",
     description: "Exclusive invitation-only premium card with unlimited airport lounge access",
     type: "premium",
@@ -80,6 +89,12 @@ const PromotionalBanner = () => {
   const handleNext = () => {
     setCurrentPromotion(currentPromotion + 1);
   };
+
+  const handleApply = () => {
+    if (promotion.card && promotion.card.applyUrl) {
+      window.open(promotion.card.applyUrl, "_blank");
+    }
+  };
   
   return (
     <div className={`w-full rounded-lg p-4 ${promotion.bgColor} border ${promotion.borderColor} relative overflow-hidden`}>
@@ -91,6 +106,12 @@ const PromotionalBanner = () => {
           <div>
             <h3 className="font-bold text-navy">{promotion.title}</h3>
             <p className="text-sm text-gray-700">{promotion.description}</p>
+            <button 
+              onClick={handleApply}
+              className="mt-1 text-sm font-medium text-blue-600 hover:underline flex items-center"
+            >
+              Apply Now <ArrowRight className="h-3 w-3 ml-1" />
+            </button>
           </div>
         </div>
         

@@ -1,8 +1,26 @@
 
-import { ArrowRight, CreditCard, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import CreditCardBanner from "./CreditCardBanner";
+import { useState } from "react";
+import { creditCards } from "@/data/creditCards";
+
+// Featured cards that we want to advertise prominently
+const featuredCardIds = ["1", "4", "2"]; // Premium Rewards Gold, Travel Elite, ShopMore Platinum
+const featuredCards = creditCards.filter(card => featuredCardIds.includes(card.id));
 
 const Hero = () => {
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const currentCard = featuredCards[currentCardIndex];
+  
+  const nextCard = () => {
+    setCurrentCardIndex((prevIndex) => (prevIndex + 1) % featuredCards.length);
+  };
+  
+  const prevCard = () => {
+    setCurrentCardIndex((prevIndex) => (prevIndex - 1 + featuredCards.length) % featuredCards.length);
+  };
+  
   return (
     <div className="bg-gradient-to-br from-navy to-slate-blue text-white py-16 md:py-24">
       <div className="container mx-auto px-4">
@@ -24,7 +42,11 @@ const Hero = () => {
                 Get Started
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-              <Button variant="outline" className="border-white text-white hover:bg-white/10">
+              <Button 
+                variant="outline" 
+                className="border-white text-white hover:bg-white/10"
+                onClick={() => window.location.href = '/cards'}
+              >
                 Explore All Cards
               </Button>
             </div>
@@ -32,37 +54,60 @@ const Hero = () => {
           
           <div className="md:w-1/2 flex justify-center md:justify-end">
             <div className="relative">
-              <div className="absolute -top-6 -right-6 bg-gold text-navy rounded-full p-3">
-                <Sparkles className="h-6 w-6" />
-              </div>
-              
-              <div className="bg-white rounded-xl p-4 shadow-xl transform rotate-3 transition-transform hover:rotate-0">
-                <div className="bg-gradient-to-br from-slate-800 to-navy rounded-lg p-6 w-72 h-44 flex flex-col justify-between">
-                  <div className="flex justify-between items-start">
-                    <CreditCard className="h-8 w-8 text-gold" />
-                    <div className="text-right">
-                      <p className="text-xs opacity-80">IndiaCard</p>
-                      <p className="text-sm font-bold">Platinum Rewards</p>
+              {/* Featured Card Carousel */}
+              <div className="relative w-72 sm:w-80">
+                <CreditCardBanner card={currentCard} size="lg" />
+                
+                {/* Card Navigation */}
+                {featuredCards.length > 1 && (
+                  <div className="mt-4 flex justify-between">
+                    <Button 
+                      variant="ghost" 
+                      className="p-2 text-white hover:text-gold hover:bg-white/10"
+                      onClick={prevCard}
+                    >
+                      ← Prev
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {featuredCards.map((_, index) => (
+                        <span 
+                          key={index} 
+                          className={`w-2 h-2 rounded-full transition-colors duration-300 ${index === currentCardIndex ? 'bg-gold' : 'bg-white/30'}`}
+                        />
+                      ))}
                     </div>
+                    <Button 
+                      variant="ghost" 
+                      className="p-2 text-white hover:text-gold hover:bg-white/10"
+                      onClick={nextCard}
+                    >
+                      Next →
+                    </Button>
                   </div>
-                  
-                  <div>
-                    <div className="mb-2">
-                      <p className="text-xs opacity-80">Card Number</p>
-                      <p className="font-mono">•••• •••• •••• 2023</p>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-xs opacity-80">Card Holder</p>
-                        <p className="font-medium">YOU</p>
-                      </div>
-                      <div>
-                        <p className="text-xs opacity-80">Expires</p>
-                        <p className="font-medium">04/29</p>
-                      </div>
-                    </div>
-                  </div>
+                )}
+                
+                {/* Feature Badge */}
+                <div className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/2 bg-gold text-navy font-bold py-1 px-3 rounded-full text-sm shadow-lg">
+                  {currentCardIndex === 0 ? "Best Overall" : currentCardIndex === 1 ? "Premium Pick" : "Top Cashback"}
+                </div>
+                
+                {/* Feature Highlight */}
+                <div className="bg-white/10 backdrop-blur-sm mt-2 p-3 rounded-lg border border-white/20">
+                  <h3 className="font-bold text-gold mb-1">{currentCard.name} Highlights:</h3>
+                  <ul className="text-sm space-y-1">
+                    {currentCard.benefits.slice(0, 2).map((benefit, idx) => (
+                      <li key={idx} className="flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>{benefit.description}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button 
+                    className="w-full mt-2 bg-gold text-navy hover:bg-gold/90"
+                    onClick={() => window.open(currentCard.applyUrl, "_blank")}
+                  >
+                    Apply Now
+                  </Button>
                 </div>
               </div>
             </div>
