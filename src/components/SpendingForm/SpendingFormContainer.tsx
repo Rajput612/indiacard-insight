@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { SpendingEntry } from "@/types/spending";
 import { findBestCreditCards } from "@/data/creditCards";
 import SpendingDetailStep from "./SpendingDetailStep";
 import CreditCardRecommendations from "../CreditCardRecommendations";
+import PromotionalBanner from "./PromotionalBanner";
 import { RotateCw } from "lucide-react";
 
 const SpendingFormContainer = () => {
@@ -104,8 +106,11 @@ const SpendingFormContainer = () => {
 
   return (
     <div className="w-full max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-6 my-8 animate-fade-in">
+      {/* Promotional Banner */}
+      <PromotionalBanner />
+      
       {/* Main content */}
-      <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <div>
           <SpendingDetailStep 
             entries={spendingEntries} 

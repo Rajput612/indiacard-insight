@@ -1,5 +1,4 @@
-
-import { CreditCard } from "@/types/spending";
+import { CreditCard, Platform } from "@/types/spending";
 
 export const creditCards: CreditCard[] = [
   {
@@ -219,6 +218,78 @@ export const brands = {
   foodAndBeverages: ["Swiggy", "Zomato", "Domino's", "McDonald's", "Starbucks", "Cafe Coffee Day", "Local Restaurants"],
   transport: ["Uber", "Ola", "Rapido", "Public Transport", "Metro", "Bus", "Auto Rickshaw"],
   healthcare: ["Apollo", "Medplus", "Netmeds", "PharmEasy", "1mg", "Local Pharmacy"]
+};
+
+// Platform options based on category
+export const platformOptions: Record<"online" | "offline", Platform[]> = {
+  online: ["app", "website", "other"],
+  offline: ["store", "other"]
+};
+
+// Popular platforms by type
+export const popularPlatforms = {
+  app: ["Amazon", "Flipkart", "Swiggy", "Zomato", "PhonePe", "Paytm", "Myntra", "BigBasket", "Uber", "Ola"],
+  website: ["Amazon.in", "Flipkart.com", "Myntra.com", "Nykaa.com", "Ajio.com", "MakeMyTrip.com", "Zomato.com", "Swiggy.com", "Bookmyshow.com"],
+  store: ["Reliance Retail", "DMart", "Big Bazaar", "Lifestyle", "Shoppers Stop", "Croma", "Tata CLiQ", "Westside", "More Supermarket"]
+};
+
+// Categories by platform
+export const categoriesByPlatform = {
+  online: {
+    app: ["foodAndBeverages", "travel", "fashion", "groceries", "electronics", "entertainment", "other"],
+    website: ["electronics", "fashion", "groceries", "homeGoods", "travel", "entertainment", "other"],
+    other: ["electronics", "fashion", "groceries", "homeGoods", "travel", "entertainment", "other"]
+  },
+  offline: {
+    store: ["foodAndBeverages", "fashion", "groceries", "homeGoods", "electronics", "healthcare", "education", "other"],
+    other: ["foodAndBeverages", "transport", "housingAndUtilities", "healthcare", "education", "entertainment", "other"]
+  }
+};
+
+// Subcategories by category
+export const subcategoriesByCategory = {
+  electronics: ["Smartphones", "Laptops", "Audio", "Cameras", "Accessories", "TV & Home Theater", "Gaming", "Other"],
+  fashion: ["Men's Clothing", "Women's Clothing", "Footwear", "Accessories", "Children's Wear", "Sportswear", "Ethnic Wear", "Other"],
+  groceries: ["Fresh Produce", "Packaged Foods", "Beverages", "Dairy", "Household Supplies", "Personal Care", "Pet Supplies", "Other"],
+  homeGoods: ["Furniture", "Decor", "Kitchen Appliances", "Bedding", "Lighting", "Bathroom", "Storage", "Other"],
+  travel: ["Flights", "Hotels", "Packages", "Car Rentals", "Cruises", "Bus Tickets", "Train Tickets", "Other"],
+  entertainment: ["Movies", "Music", "Gaming", "Streaming Services", "Events", "Theme Parks", "Books", "Other"],
+  foodAndBeverages: ["Restaurants", "Cafes", "Fast Food", "Bars & Pubs", "Food Delivery", "Catering", "Specialty Foods", "Other"],
+  transport: ["Public Transit", "Taxi/Cab", "Car Expenses", "Bike/Scooter", "Fuel", "Parking", "Tolls", "Other"],
+  housingAndUtilities: ["Rent/Mortgage", "Electricity", "Water", "Gas", "Internet", "Cable TV", "Phone", "Other"],
+  healthcare: ["Medicines", "Doctor Visits", "Hospital", "Dental", "Vision", "Fitness", "Insurance", "Other"],
+  education: ["Tuition", "Books", "Courses", "Coaching", "School Supplies", "Exams & Tests", "Certifications", "Other"],
+  other: ["Miscellaneous", "Donations", "Gifts", "Subscriptions", "Professional Services", "Maintenance", "Repairs", "Other"]
+};
+
+// Brands by subcategory
+export const brandsBySubcategory = {
+  Smartphones: ["Apple", "Samsung", "Xiaomi", "OnePlus", "Vivo", "Oppo", "Realme", "Nothing", "Google", "Motorola"],
+  Laptops: ["Apple", "Dell", "HP", "Lenovo", "Asus", "Acer", "MSI", "Microsoft", "Samsung", "LG"],
+  "Men's Clothing": ["Levi's", "Allen Solly", "Louis Philippe", "Van Heusen", "Peter England", "Jack & Jones", "H&M", "Zara", "US Polo", "Arrow"],
+  "Women's Clothing": ["Zara", "H&M", "Westside", "Biba", "W", "AND", "Fabindia", "Vero Moda", "Forever 21", "Lifestyle"],
+  Restaurants: ["McDonald's", "Domino's", "Pizza Hut", "KFC", "Subway", "Burger King", "Taco Bell", "Haldiram's", "Wow! Momo", "Barbeque Nation"],
+  "Fresh Produce": ["BigBasket", "JioMart", "DMart", "Nature's Basket", "Reliance Fresh", "More", "Spencer's", "Grofers", "Amazon Fresh", "Flipkart Supermart"]
+};
+
+// Helper functions for cascading dropdowns
+export const getCategoriesByPlatform = (category: "online" | "offline", platform: Platform): string[] => {
+  return categoriesByPlatform[category][platform] || [];
+};
+
+export const getSubcategoriesByCategory = (category: string): string[] => {
+  return subcategoriesByCategory[category as keyof typeof subcategoriesByCategory] || [];
+};
+
+export const getBrandsBySubcategory = (category: string, subcategory: string): string[] => {
+  // First try to get brands by exact subcategory
+  const exactBrands = brandsBySubcategory[subcategory as keyof typeof brandsBySubcategory];
+  if (exactBrands) {
+    return exactBrands;
+  }
+  
+  // Fallback to category brands
+  return brands[category as keyof typeof brands] || [];
 };
 
 // Helper function to find the best card based on spending profile

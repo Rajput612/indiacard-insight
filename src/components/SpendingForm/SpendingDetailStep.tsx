@@ -1,11 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SpendingEntry, Platform } from "@/types/spending";
-import { brands } from "@/data/creditCards";
+import { brands, platformOptions, getCategoriesByPlatform, getSubcategoriesByCategory, getBrandsBySubcategory } from "@/data/creditCards";
 import { Plus, X, Globe, Smartphone, Store } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
@@ -32,9 +32,63 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
   // Level 5: Brand
   const [brand, setBrand] = useState("");
   
+  // Available options based on selections
+  const [availablePlatforms, setAvailablePlatforms] = useState<Platform[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]);
+  
   // Amount and frequency
   const [amount, setAmount] = useState("");
   const [frequency, setFrequency] = useState<"monthly" | "yearly" | "one-time" | "daily" | "weekly" | "quarterly">("monthly");
+
+  // Update available platforms when category changes
+  useEffect(() => {
+    setAvailablePlatforms(platformOptions[category]);
+    // Reset subsequent values
+    setPlatform(platformOptions[category][0]);
+    setPlatformName("");
+    setSubcategory("");
+    setSpecificCategory("");
+    setBrand("");
+  }, [category]);
+
+  // Update available categories when platform changes
+  useEffect(() => {
+    const categories = getCategoriesByPlatform(category, platform);
+    setAvailableCategories(categories);
+    
+    // Reset subsequent values
+    if (categories.length > 0) {
+      setSubcategory(categories[0]);
+    } else {
+      setSubcategory("");
+    }
+    setSpecificCategory("");
+    setBrand("");
+  }, [category, platform]);
+
+  // Update available subcategories when category changes
+  useEffect(() => {
+    if (subcategory) {
+      const subcategories = getSubcategoriesByCategory(subcategory);
+      setAvailableSubcategories(subcategories);
+      // Reset brand
+      setBrand("");
+    } else {
+      setAvailableSubcategories([]);
+    }
+  }, [subcategory]);
+
+  // Update available brands when subcategory changes
+  useEffect(() => {
+    if (subcategory && specificCategory) {
+      const availableBrands = getBrandsBySubcategory(subcategory, specificCategory);
+      setAvailableBrands(availableBrands);
+    } else {
+      setAvailableBrands([]);
+    }
+  }, [subcategory, specificCategory]);
 
   const handleAddEntry = () => {
     if (!subcategory || !amount || parseFloat(amount) <= 0) return;
@@ -60,21 +114,6 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
     setAmount("");
   };
 
-  // Reset platform when category changes
-  const handleCategoryChange = (value: "online" | "offline") => {
-    setCategory(value);
-    // Reset platform based on category
-    if (value === "online") {
-      setPlatform("website");
-    } else {
-      setPlatform("store");
-    }
-    // Reset other fields
-    setSubcategory("");
-    setBrand("");
-    setSpecificCategory("");
-  };
-
   return (
     <div className="space-y-6 animate-slide-up">
       <div className="text-center mb-6">
@@ -91,7 +130,7 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
             <Label htmlFor="category">Type of Spending</Label>
             <Select 
               value={category} 
-              onValueChange={(value) => handleCategoryChange(value as "online" | "offline")}
+              onValueChange={(value) => setCategory(value as "online" | "offline")}
             >
               <SelectTrigger id="category">
                 <SelectValue placeholder="Select Category" />
@@ -114,37 +153,16 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
                 <SelectValue placeholder="Select Platform" />
               </SelectTrigger>
               <SelectContent>
-                {category === "online" ? (
-                  <>
-                    <SelectItem value="app">
-                      <div className="flex items-center">
-                        <Smartphone className="h-4 w-4 mr-2" />
-                        <span>App</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="website">
-                      <div className="flex items-center">
-                        <Globe className="h-4 w-4 mr-2" />
-                        <span>Website</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="other">
-                      <span>Miscellaneous</span>
-                    </SelectItem>
-                  </>
-                ) : (
-                  <>
-                    <SelectItem value="store">
-                      <div className="flex items-center">
-                        <Store className="h-4 w-4 mr-2" />
-                        <span>Store</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="other">
-                      <span>Miscellaneous</span>
-                    </SelectItem>
-                  </>
-                )}
+                {availablePlatforms.map(plat => (
+                  <SelectItem key={plat} value={plat}>
+                    <div className="flex items-center">
+                      {plat === 'app' && <Smartphone className="h-4 w-4 mr-2" />}
+                      {plat === 'website' && <Globe className="h-4 w-4 mr-2" />}
+                      {plat === 'store' && <Store className="h-4 w-4 mr-2" />}
+                      <span className="capitalize">{plat}</span>
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -175,62 +193,53 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
                 <SelectValue placeholder="Select Category" />
               </SelectTrigger>
               <SelectContent>
-                {category === "online" ? (
-                  <>
-                    <SelectItem value="electronics">Electronics</SelectItem>
-                    <SelectItem value="fashion">Fashion</SelectItem>
-                    <SelectItem value="groceries">Groceries</SelectItem>
-                    <SelectItem value="homeGoods">Home Goods</SelectItem>
-                    <SelectItem value="travel">Travel</SelectItem>
-                    <SelectItem value="entertainment">Entertainment</SelectItem>
-                    <SelectItem value="other">Miscellaneous</SelectItem>
-                  </>
-                ) : (
-                  <>
-                    <SelectItem value="foodAndBeverages">Food & Beverages</SelectItem>
-                    <SelectItem value="transport">Transport</SelectItem>
-                    <SelectItem value="housingAndUtilities">Housing & Utilities</SelectItem>
-                    <SelectItem value="healthcare">Healthcare</SelectItem>
-                    <SelectItem value="education">Education</SelectItem>
-                    <SelectItem value="entertainment">Entertainment</SelectItem>
-                    <SelectItem value="other">Miscellaneous</SelectItem>
-                  </>
-                )}
+                {availableCategories.map(cat => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat.replace(/([A-Z])/g, ' $1').trim()}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
           {/* Level 4: Subcategory */}
           <div className="space-y-2">
-            <Label htmlFor="specific-category">Subcategory (Optional)</Label>
-            <Input
-              id="specific-category"
-              placeholder="e.g., Smartphones, Clothing"
-              value={specificCategory}
-              onChange={(e) => setSpecificCategory(e.target.value)}
-            />
+            <Label htmlFor="specific-category">Subcategory</Label>
+            <Select 
+              value={specificCategory} 
+              onValueChange={setSpecificCategory}
+              disabled={availableSubcategories.length === 0}
+            >
+              <SelectTrigger id="specific-category">
+                <SelectValue placeholder="Select Subcategory" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableSubcategories.map(subcat => (
+                  <SelectItem key={subcat} value={subcat}>
+                    {subcat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Level 5: Brand */}
           <div className="space-y-2">
-            <Label htmlFor="brand">Brand (Optional)</Label>
+            <Label htmlFor="brand">Brand</Label>
             <Select 
               value={brand} 
               onValueChange={setBrand}
+              disabled={availableBrands.length === 0}
             >
               <SelectTrigger id="brand">
                 <SelectValue placeholder="Select Brand" />
               </SelectTrigger>
               <SelectContent>
-                {subcategory && brands[subcategory as keyof typeof brands] ? (
-                  brands[subcategory as keyof typeof brands].map((brandName) => (
-                    <SelectItem key={brandName} value={brandName}>
-                      {brandName}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="other">Other</SelectItem>
-                )}
+                {availableBrands.map(brandName => (
+                  <SelectItem key={brandName} value={brandName}>
+                    {brandName}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -303,7 +312,7 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     <span className="capitalize">{entry.category}</span>
-                    {entry.platform && ` • ${platform === 'app' ? 'App' : platform === 'website' ? 'Website' : platform === 'store' ? 'Store' : 'Platform'}`}
+                    {entry.platform && ` • ${entry.platform === 'app' ? 'App' : entry.platform === 'website' ? 'Website' : entry.platform === 'store' ? 'Store' : 'Platform'}`}
                     {entry.platformName && `: ${entry.platformName}`}
                     {entry.brand && ` • ${entry.brand}`}
                   </div>
