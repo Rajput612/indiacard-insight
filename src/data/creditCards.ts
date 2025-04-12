@@ -1,4 +1,4 @@
-import { CreditCard, Platform } from "@/types/spending";
+import { CreditCard, Platform, SpendingEntry } from "@/types/spending";
 
 export const creditCards: CreditCard[] = [
   {
@@ -208,7 +208,6 @@ export const creditCards: CreditCard[] = [
   }
 ];
 
-// Sample brands by category
 export const brands = {
   electronics: ["Samsung", "Apple", "Xiaomi", "OnePlus", "Dell", "HP", "Lenovo", "Asus", "Boat", "JBL"],
   fashion: ["Myntra", "Ajio", "Nike", "Adidas", "H&M", "Zara", "Levi's", "Puma", "Westside", "Uniqlo"],
@@ -220,20 +219,17 @@ export const brands = {
   healthcare: ["Apollo", "Medplus", "Netmeds", "PharmEasy", "1mg", "Local Pharmacy"]
 };
 
-// Platform options based on category
 export const platformOptions: Record<"online" | "offline", Platform[]> = {
   online: ["app", "website", "other"],
   offline: ["store", "other"]
 };
 
-// Popular platforms by type
 export const popularPlatforms = {
   app: ["Amazon", "Flipkart", "Swiggy", "Zomato", "PhonePe", "Paytm", "Myntra", "BigBasket", "Uber", "Ola"],
   website: ["Amazon.in", "Flipkart.com", "Myntra.com", "Nykaa.com", "Ajio.com", "MakeMyTrip.com", "Zomato.com", "Swiggy.com", "Bookmyshow.com"],
   store: ["Reliance Retail", "DMart", "Big Bazaar", "Lifestyle", "Shoppers Stop", "Croma", "Tata CLiQ", "Westside", "More Supermarket"]
 };
 
-// Categories by platform
 export const categoriesByPlatform = {
   online: {
     app: ["foodAndBeverages", "travel", "fashion", "groceries", "electronics", "entertainment", "other"],
@@ -246,7 +242,6 @@ export const categoriesByPlatform = {
   }
 };
 
-// Subcategories by category
 export const subcategoriesByCategory = {
   electronics: ["Smartphones", "Laptops", "Audio", "Cameras", "Accessories", "TV & Home Theater", "Gaming", "Other"],
   fashion: ["Men's Clothing", "Women's Clothing", "Footwear", "Accessories", "Children's Wear", "Sportswear", "Ethnic Wear", "Other"],
@@ -262,7 +257,6 @@ export const subcategoriesByCategory = {
   other: ["Miscellaneous", "Donations", "Gifts", "Subscriptions", "Professional Services", "Maintenance", "Repairs", "Other"]
 };
 
-// Brands by subcategory
 export const brandsBySubcategory = {
   Smartphones: ["Apple", "Samsung", "Xiaomi", "OnePlus", "Vivo", "Oppo", "Realme", "Nothing", "Google", "Motorola"],
   Laptops: ["Apple", "Dell", "HP", "Lenovo", "Asus", "Acer", "MSI", "Microsoft", "Samsung", "LG"],
@@ -272,7 +266,6 @@ export const brandsBySubcategory = {
   "Fresh Produce": ["BigBasket", "JioMart", "DMart", "Nature's Basket", "Reliance Fresh", "More", "Spencer's", "Grofers", "Amazon Fresh", "Flipkart Supermart"]
 };
 
-// Helper functions for cascading dropdowns
 export const getCategoriesByPlatform = (category: "online" | "offline", platform: Platform): string[] => {
   return categoriesByPlatform[category][platform] || [];
 };
@@ -282,48 +275,118 @@ export const getSubcategoriesByCategory = (category: string): string[] => {
 };
 
 export const getBrandsBySubcategory = (category: string, subcategory: string): string[] => {
-  // First try to get brands by exact subcategory
   const exactBrands = brandsBySubcategory[subcategory as keyof typeof brandsBySubcategory];
   if (exactBrands) {
     return exactBrands;
   }
   
-  // Fallback to category brands
   return brands[category as keyof typeof brands] || [];
 };
 
-// Helper function to find the best card based on spending profile
 export const findBestCreditCards = (spendingProfile: { 
   onlinePercentage: number, 
-  categories: Record<string, number>
-}): CreditCard[] => {
-  // Simple algorithm to match cards with spending pattern
+  categories: Record<string, number>,
+  entries: SpendingEntry[]
+}): { 
+  card: CreditCard;
+  score: number;
+  potentialSavings: number;
+  savingsBreakdown: {
+    category: string;
+    monthlySpend: number;
+    cashbackRate: number;
+    monthlySavings: number;
+  }[];
+}[] => {
+  // Add safety check for entries array
+  if (!spendingProfile.entries || !Array.isArray(spendingProfile.entries)) {
+    return [];
+  }
+
   const scoredCards = creditCards.map(card => {
     let score = 0;
+    let totalPotentialSavings = 0;
+    const savingsBreakdown: {
+      category: string;
+      monthlySpend: number;
+      cashbackRate: number;
+      monthlySavings: number;
+    }[] = [];
+
+    const monthlySpending = spendingProfile.entries.map(entry => {
+      let monthlyAmount = entry.amount;
+      switch (entry.frequency) {
+        case 'daily':
+          monthlyAmount *= 30;
+          break;
+        case 'weekly':
+          monthlyAmount *= 4;
+          break;
+        case 'quarterly':
+          monthlyAmount /= 3;
+          break;
+        case 'yearly':
+          monthlyAmount /= 12;
+          break;
+        case 'one-time':
+          monthlyAmount /= 12;
+          break;
+      }
+      return {
+        ...entry,
+        monthlyAmount
+      };
+    });
+
+    monthlySpending.forEach(spending => {
+      const matchingCategory = card.categories.find(cat => {
+        if (cat.category.toLowerCase() === spending.subcategory.toLowerCase()) {
+          return true;
+        }
+        if ((cat.category === 'online' && spending.category === 'online') ||
+            (cat.category === 'offline' && spending.category === 'offline')) {
+          return true;
+        }
+        if (cat.category === 'food delivery' && 
+            (spending.subcategory === 'foodAndBeverages' && spending.platform === 'app')) {
+          return true;
+        }
+        return false;
+      });
+
+      if (matchingCategory) {
+        const monthlySavings = (spending.monthlyAmount * matchingCategory.cashbackRate) / 100;
+        totalPotentialSavings += monthlySavings;
+
+        savingsBreakdown.push({
+          category: spending.subcategory,
+          monthlySpend: spending.monthlyAmount,
+          cashbackRate: matchingCategory.cashbackRate,
+          monthlySavings
+        });
+
+        score += (matchingCategory.cashbackRate * spending.monthlyAmount / 1000);
+      }
+    });
+
+    if (card.annualFee === 0) {
+      score += 5;
+    }
     
-    // Score based on online vs offline spending
-    const onlineCategories = card.categories.filter(cat => cat.category === 'online');
-    if (onlineCategories.length > 0 && spendingProfile.onlinePercentage > 50) {
+    const annualSavings = totalPotentialSavings * 12;
+    if (annualSavings > card.annualFee * 3) {
       score += 10;
     }
-    
-    // Score based on category match
-    for (const [category, percentage] of Object.entries(spendingProfile.categories)) {
-      const matchingCategory = card.categories.find(cat => 
-        cat.category.toLowerCase() === category.toLowerCase()
-      );
-      
-      if (matchingCategory) {
-        score += (matchingCategory.cashbackRate * percentage / 100);
-      }
-    }
-    
-    return { card, score };
+
+    return {
+      card,
+      score,
+      potentialSavings: totalPotentialSavings,
+      savingsBreakdown
+    };
   });
-  
-  // Sort by score and return top 3
+
   return scoredCards
     .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
-    .map(scored => scored.card);
+    .slice(0, 3);
 };

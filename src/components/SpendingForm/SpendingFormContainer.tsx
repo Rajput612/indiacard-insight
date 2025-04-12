@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { SpendingEntry } from "@/types/spending";
@@ -95,10 +94,11 @@ const SpendingFormContainer = () => {
       categoryPercentages[category] = (amount / totalMonthly) * 100;
     });
     
-    // Get recommendations
+    // Get recommendations with entries included
     const recommendedCards = findBestCreditCards({
       onlinePercentage,
-      categories: categoryPercentages
+      categories: categoryPercentages,
+      entries: spendingEntries
     });
     
     setRecommendations(recommendedCards);

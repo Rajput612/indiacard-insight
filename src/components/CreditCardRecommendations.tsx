@@ -1,11 +1,21 @@
-
 import { CreditCard } from "@/types/spending";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, CreditCard as CreditCardIcon, ExternalLink, Medal, Star } from "lucide-react";
+import { CheckCircle, CreditCard as CreditCardIcon, ExternalLink, Medal, Star, Sparkles } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 type CreditCardRecommendationsProps = {
-  recommendations: CreditCard[];
+  recommendations: {
+    card: CreditCard;
+    score: number;
+    potentialSavings: number;
+    savingsBreakdown: {
+      category: string;
+      monthlySpend: number;
+      cashbackRate: number;
+      monthlySavings: number;
+    }[];
+  }[];
 };
 
 const CreditCardRecommendations = ({ recommendations }: CreditCardRecommendationsProps) => {
@@ -27,9 +37,9 @@ const CreditCardRecommendations = ({ recommendations }: CreditCardRecommendation
       </div>
 
       <div className="space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
-        {recommendations.map((card, index) => (
+        {recommendations.map((rec, index) => (
           <div 
-            key={card.id}
+            key={rec.card.id}
             className={`bg-white rounded-xl shadow-md overflow-hidden border ${
               index === 0 ? 'border-gold' : 'border-gray-200'
             } transition-all hover:shadow-lg`}
@@ -37,7 +47,7 @@ const CreditCardRecommendations = ({ recommendations }: CreditCardRecommendation
             {index === 0 && (
               <div className="bg-gold text-navy px-3 py-0.5 text-xs font-medium flex items-center justify-center">
                 <Medal className="h-3 w-3 mr-1" />
-                Best Match
+                Best Match • Estimated Monthly Savings: ₹{Math.round(rec.potentialSavings).toLocaleString()}
               </div>
             )}
             
@@ -48,8 +58,8 @@ const CreditCardRecommendations = ({ recommendations }: CreditCardRecommendation
                     <CreditCardIcon className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-navy">{card.name}</h3>
-                    <p className="text-xs text-gray-600">{card.issuer}</p>
+                    <h3 className="font-bold text-navy">{rec.card.name}</h3>
+                    <p className="text-xs text-gray-600">{rec.card.issuer}</p>
                   </div>
                 </div>
                 
@@ -61,9 +71,48 @@ const CreditCardRecommendations = ({ recommendations }: CreditCardRecommendation
               </div>
               
               <div className="space-y-3 text-sm">
+                {/* Savings Summary */}
+                <div className="bg-navy/5 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="h-4 w-4 text-gold" />
+                    <h4 className="font-medium text-navy">Potential Savings</h4>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500">Monthly</p>
+                      <p className="font-medium text-navy">₹{Math.round(rec.potentialSavings).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Annual</p>
+                      <p className="font-medium text-navy">₹{Math.round(rec.potentialSavings * 12).toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Savings Breakdown */}
+                <Accordion type="single" collapsible>
+                  <AccordionItem value="savings">
+                    <AccordionTrigger className="text-sm">
+                      View Savings Breakdown
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2">
+                        {rec.savingsBreakdown.map((breakdown, i) => (
+                          <div key={i} className="text-xs grid grid-cols-4 gap-2 py-1 border-b last:border-0">
+                            <div className="font-medium">{breakdown.category.replace(/([A-Z])/g, ' $1').trim()}</div>
+                            <div className="text-right">₹{Math.round(breakdown.monthlySpend).toLocaleString()}</div>
+                            <div className="text-right text-green-600">{breakdown.cashbackRate}%</div>
+                            <div className="text-right font-medium">₹{Math.round(breakdown.monthlySavings).toLocaleString()}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+                
                 {/* Top benefits */}
                 <div className="space-y-1.5">
-                  {card.benefits.slice(0, 2).map((benefit, i) => (
+                  {rec.card.benefits.slice(0, 2).map((benefit, i) => (
                     <div key={i} className="flex items-center">
                       <CheckCircle className="h-3 w-3 text-green-500 mr-1.5 flex-shrink-0" />
                       <p className="text-xs text-gray-700">{benefit.description}</p>
@@ -74,7 +123,7 @@ const CreditCardRecommendations = ({ recommendations }: CreditCardRecommendation
                 {/* Categories */}
                 <div>
                   <div className="flex flex-wrap gap-1 mb-2">
-                    {card.categories.map((category, i) => (
+                    {rec.card.categories.map((category, i) => (
                       <Badge key={i} variant="outline" className="bg-navy/5 text-xs py-0">
                         {category.category.replace(/([A-Z])/g, ' $1').trim()}
                         {category.cashbackRate > 0 && ` (${category.cashbackRate}%)`}
@@ -88,13 +137,13 @@ const CreditCardRecommendations = ({ recommendations }: CreditCardRecommendation
                   <div>
                     <span className="text-gray-500">Annual Fee:</span>{" "}
                     <span className="font-medium">
-                      {card.annualFee === 0 ? "Free" : `₹${card.annualFee.toLocaleString()}`}
+                      {rec.card.annualFee === 0 ? "Free" : `₹${rec.card.annualFee.toLocaleString()}`}
                     </span>
                   </div>
                   <div>
                     <span className="text-gray-500">Joining Fee:</span>{" "}
                     <span className="font-medium">
-                      {card.joinFee === 0 ? "Free" : `₹${card.joinFee.toLocaleString()}`}
+                      {rec.card.joinFee === 0 ? "Free" : `₹${rec.card.joinFee.toLocaleString()}`}
                     </span>
                   </div>
                 </div>
@@ -111,8 +160,8 @@ const CreditCardRecommendations = ({ recommendations }: CreditCardRecommendation
       
       <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 mt-4">
         <p className="text-xs text-gray-600">
-          <span className="font-medium text-navy">Note:</span> These recommendations are based 
-          solely on your spending patterns and do not guarantee approval.
+          <span className="font-medium text-navy">Note:</span> These recommendations and savings calculations are based 
+          on your provided spending patterns. Actual savings may vary based on specific terms, conditions, and spending limits.
         </p>
       </div>
     </div>
