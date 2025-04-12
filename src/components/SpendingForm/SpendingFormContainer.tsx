@@ -21,6 +21,12 @@ const SpendingFormContainer = () => {
     setSpendingEntries((prev) => prev.filter(entry => entry.id !== id));
   };
 
+  const updateSpendingEntry = (id: string, updatedEntry: SpendingEntry) => {
+    setSpendingEntries((prev) => 
+      prev.map(entry => entry.id === id ? updatedEntry : entry)
+    );
+  };
+
   // Calculate recommendations whenever spending entries change
   useEffect(() => {
     if (spendingEntries.length === 0) {
@@ -116,6 +122,7 @@ const SpendingFormContainer = () => {
             entries={spendingEntries} 
             addEntry={addSpendingEntry} 
             removeEntry={removeSpendingEntry}
+            updateEntry={updateSpendingEntry}
           />
         </div>
         

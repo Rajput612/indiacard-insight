@@ -1,21 +1,22 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SpendingEntry, Platform } from "@/types/spending";
-import { brands, platformOptions, getCategoriesByPlatform, getSubcategoriesByCategory, getBrandsBySubcategory } from "@/data/creditCards";
-import { Plus, X, Globe, Smartphone, Store } from "lucide-react";
+import { brands, platformOptions, getCategoriesByPlatform, getSubcategoriesByCategory, getBrandsBySubcategory, popularPlatforms } from "@/data/creditCards";
+import { Plus, X, Globe, Smartphone, Store, Edit2, Copy } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type SpendingDetailStepProps = {
   entries: SpendingEntry[];
   addEntry: (entry: SpendingEntry) => void;
   removeEntry: (id: string) => void;
+  updateEntry: (id: string, entry: SpendingEntry) => void;
 };
 
-const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailStepProps) => {
+const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: SpendingDetailStepProps) => {
   // Level 1: Online/Offline
   const [category, setCategory] = useState<"online" | "offline">("online");
   
@@ -32,15 +33,20 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
   // Level 5: Brand
   const [brand, setBrand] = useState("");
   
+  // Amount and frequency
+  const [amount, setAmount] = useState("");
+  const [frequency, setFrequency] = useState<"monthly" | "yearly" | "one-time" | "daily" | "weekly" | "quarterly">("monthly");
+
+  // Edit mode
+  const [editingEntry, setEditingEntry] = useState<string | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
   // Available options based on selections
   const [availablePlatforms, setAvailablePlatforms] = useState<Platform[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
   const [availableBrands, setAvailableBrands] = useState<string[]>([]);
-  
-  // Amount and frequency
-  const [amount, setAmount] = useState("");
-  const [frequency, setFrequency] = useState<"monthly" | "yearly" | "one-time" | "daily" | "weekly" | "quarterly">("monthly");
+  const [suggestedPlatforms, setSuggestedPlatforms] = useState<string[]>([]);
 
   // Update available platforms when category changes
   useEffect(() => {
@@ -66,6 +72,17 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
     }
     setSpecificCategory("");
     setBrand("");
+
+    // Update suggested platforms based on platform type
+    if (platform === 'app') {
+      setSuggestedPlatforms(popularPlatforms.app);
+    } else if (platform === 'website') {
+      setSuggestedPlatforms(popularPlatforms.website);
+    } else if (platform === 'store') {
+      setSuggestedPlatforms(popularPlatforms.store);
+    } else {
+      setSuggestedPlatforms([]);
+    }
   }, [category, platform]);
 
   // Update available subcategories when category changes
@@ -90,11 +107,23 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
     }
   }, [subcategory, specificCategory]);
 
+  const resetForm = () => {
+    setCategory("online");
+    setPlatform("website");
+    setPlatformName("");
+    setSubcategory("");
+    setSpecificCategory("");
+    setBrand("");
+    setAmount("");
+    setFrequency("monthly");
+    setEditingEntry(null);
+  };
+
   const handleAddEntry = () => {
     if (!subcategory || !amount || parseFloat(amount) <= 0) return;
 
     const newEntry: SpendingEntry = {
-      id: uuidv4(),
+      id: editingEntry || uuidv4(),
       category: category,
       subcategory: subcategory as any,
       specificCategory: specificCategory || undefined,
@@ -105,14 +134,185 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
       frequency: frequency as any,
     };
 
-    addEntry(newEntry);
+    if (editingEntry) {
+      updateEntry(editingEntry, newEntry);
+      setIsEditDialogOpen(false);
+    } else {
+      addEntry(newEntry);
+    }
     
-    // Reset form fields after adding entry
-    setSpecificCategory("");
-    setBrand("");
-    setPlatformName("");
-    setAmount("");
+    resetForm();
   };
+
+  const handleEdit = (entry: SpendingEntry) => {
+    setEditingEntry(entry.id);
+    setCategory(entry.category);
+    setPlatform(entry.platform || "website");
+    setPlatformName(entry.platformName || "");
+    setSubcategory(entry.subcategory);
+    setSpecificCategory(entry.specificCategory || "");
+    setBrand(entry.brand || "");
+    setAmount(entry.amount.toString());
+    setFrequency(entry.frequency);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDuplicate = (entry: SpendingEntry) => {
+    const newEntry = {
+      ...entry,
+      id: uuidv4()
+    };
+    addEntry(newEntry);
+  };
+
+  const formContent = (
+    <div className="grid md:grid-cols-2 gap-4">
+      {/* Level 1: Online/Offline */}
+      <div className="space-y-2 md:col-span-2">
+        <Label htmlFor="category">Type of Spending</Label>
+        <Select 
+          value={category} 
+          onValueChange={(value) => setCategory(value as "online" | "offline")}
+        >
+          <SelectTrigger id="category">
+            <SelectValue placeholder="Select Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="online">Online</SelectItem>
+            <SelectItem value="offline">Offline</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Level 2: Platform */}
+      <div className="space-y-2 md:col-span-2">
+        <Label htmlFor="platform">Platform</Label>
+        <Select 
+          value={platform} 
+          onValueChange={(value) => setPlatform(value as Platform)}
+        >
+          <SelectTrigger id="platform">
+            <SelectValue placeholder="Select Platform" />
+          </SelectTrigger>
+          <SelectContent>
+            {availablePlatforms.map(plat => (
+              <SelectItem key={plat} value={plat}>
+                <div className="flex items-center">
+                  {plat === 'app' && <Smartphone className="h-4 w-4 mr-2" />}
+                  {plat === 'website' && <Globe className="h-4 w-4 mr-2" />}
+                  {plat === 'store' && <Store className="h-4 w-4 mr-2" />}
+                  <span className="capitalize">{plat}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Platform Name with Suggestions */}
+      <div className="space-y-2 md:col-span-2">
+        <Label htmlFor="platform-name">
+          {platform === 'app' ? 'App Name' : 
+           platform === 'website' ? 'Website Name' : 
+           platform === 'store' ? 'Store Name' : 'Name'} (Optional)
+        </Label>
+        <div className="space-y-2">
+          <Input
+            id="platform-name"
+            placeholder={`Enter ${platform === 'app' ? 'app' : platform === 'website' ? 'website' : platform === 'store' ? 'store' : ''} name`}
+            value={platformName}
+            onChange={(e) => setPlatformName(e.target.value)}
+          />
+          {suggestedPlatforms.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {suggestedPlatforms.map((suggestion) => (
+                <Button
+                  key={suggestion}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPlatformName(suggestion)}
+                  className="text-xs"
+                >
+                  {suggestion}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Rest of the form fields */}
+      <div className="space-y-2">
+        <Label htmlFor="subcategory">Category</Label>
+        <Select 
+          value={subcategory} 
+          onValueChange={setSubcategory}
+        >
+          <SelectTrigger id="subcategory">
+            <SelectValue placeholder="Select Category" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableCategories.map(cat => (
+              <SelectItem key={cat} value={cat}>
+                {cat.replace(/([A-Z])/g, ' $1').trim()}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="specific-category">Subcategory</Label>
+        <Select 
+          value={specificCategory} 
+          onValueChange={setSpecificCategory}
+          disabled={availableSubcategories.length === 0}
+        >
+          <SelectTrigger id="specific-category">
+            <SelectValue placeholder="Select Subcategory" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableSubcategories.map(subcat => (
+              <SelectItem key={subcat} value={subcat}>
+                {subcat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="amount">Amount (₹)</Label>
+        <Input
+          id="amount"
+          type="number"
+          placeholder="Enter amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="frequency">Frequency</Label>
+        <Select 
+          value={frequency} 
+          onValueChange={(value) => setFrequency(value as any)}
+        >
+          <SelectTrigger id="frequency">
+            <SelectValue placeholder="Select Frequency" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="daily">Daily</SelectItem>
+            <SelectItem value="weekly">Weekly</SelectItem>
+            <SelectItem value="monthly">Monthly</SelectItem>
+            <SelectItem value="quarterly">Quarterly</SelectItem>
+            <SelectItem value="yearly">Yearly</SelectItem>
+            <SelectItem value="one-time">One-time</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6 animate-slide-up">
@@ -124,165 +324,13 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
       </div>
 
       <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-        <div className="grid md:grid-cols-2 gap-4">
-          {/* Level 1: Online/Offline */}
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="category">Type of Spending</Label>
-            <Select 
-              value={category} 
-              onValueChange={(value) => setCategory(value as "online" | "offline")}
-            >
-              <SelectTrigger id="category">
-                <SelectValue placeholder="Select Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="online">Online</SelectItem>
-                <SelectItem value="offline">Offline</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Level 2: Platform (App/Website/Store) */}
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="platform">Platform</Label>
-            <Select 
-              value={platform} 
-              onValueChange={(value) => setPlatform(value as Platform)}
-            >
-              <SelectTrigger id="platform">
-                <SelectValue placeholder="Select Platform" />
-              </SelectTrigger>
-              <SelectContent>
-                {availablePlatforms.map(plat => (
-                  <SelectItem key={plat} value={plat}>
-                    <div className="flex items-center">
-                      {plat === 'app' && <Smartphone className="h-4 w-4 mr-2" />}
-                      {plat === 'website' && <Globe className="h-4 w-4 mr-2" />}
-                      {plat === 'store' && <Store className="h-4 w-4 mr-2" />}
-                      <span className="capitalize">{plat}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Level 2.5: Platform Name */}
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="platform-name">
-              {platform === 'app' ? 'App Name' : 
-               platform === 'website' ? 'Website Name' : 
-               platform === 'store' ? 'Store Name' : 'Name'} (Optional)
-            </Label>
-            <Input
-              id="platform-name"
-              placeholder={`Enter ${platform === 'app' ? 'app' : platform === 'website' ? 'website' : platform === 'store' ? 'store' : ''} name`}
-              value={platformName}
-              onChange={(e) => setPlatformName(e.target.value)}
-            />
-          </div>
-
-          {/* Level 3: Category */}
-          <div className="space-y-2">
-            <Label htmlFor="subcategory">Category</Label>
-            <Select 
-              value={subcategory} 
-              onValueChange={setSubcategory}
-            >
-              <SelectTrigger id="subcategory">
-                <SelectValue placeholder="Select Category" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCategories.map(cat => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat.replace(/([A-Z])/g, ' $1').trim()}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Level 4: Subcategory */}
-          <div className="space-y-2">
-            <Label htmlFor="specific-category">Subcategory</Label>
-            <Select 
-              value={specificCategory} 
-              onValueChange={setSpecificCategory}
-              disabled={availableSubcategories.length === 0}
-            >
-              <SelectTrigger id="specific-category">
-                <SelectValue placeholder="Select Subcategory" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableSubcategories.map(subcat => (
-                  <SelectItem key={subcat} value={subcat}>
-                    {subcat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Level 5: Brand */}
-          <div className="space-y-2">
-            <Label htmlFor="brand">Brand</Label>
-            <Select 
-              value={brand} 
-              onValueChange={setBrand}
-              disabled={availableBrands.length === 0}
-            >
-              <SelectTrigger id="brand">
-                <SelectValue placeholder="Select Brand" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableBrands.map(brandName => (
-                  <SelectItem key={brandName} value={brandName}>
-                    {brandName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Amount and Frequency */}
-          <div className="space-y-2">
-            <Label htmlFor="amount">Amount (₹)</Label>
-            <Input
-              id="amount"
-              type="number"
-              placeholder="Enter amount"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="frequency">Frequency</Label>
-            <Select 
-              value={frequency} 
-              onValueChange={(value) => setFrequency(value as any)}
-            >
-              <SelectTrigger id="frequency">
-                <SelectValue placeholder="Select Frequency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="quarterly">Quarterly</SelectItem>
-                <SelectItem value="yearly">Yearly</SelectItem>
-                <SelectItem value="one-time">One-time</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
+        {formContent}
         <Button 
           onClick={handleAddEntry} 
           className="mt-4 bg-navy hover:bg-navy/90 text-white"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Add Spending
+          {editingEntry ? 'Update Spending' : 'Add Spending'}
         </Button>
       </div>
 
@@ -299,7 +347,7 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
             {entries.map((entry) => (
               <div 
                 key={entry.id} 
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200"
+                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-navy/30 transition-colors"
               >
                 <div>
                   <div className="flex items-center gap-2">
@@ -317,27 +365,63 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry }: SpendingDetailSt
                     {entry.brand && ` • ${entry.brand}`}
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
                   <div className="text-right">
                     <span className="font-medium">₹{entry.amount.toLocaleString()}</span>
                     <div className="text-xs text-gray-500 capitalize">
                       {entry.frequency}
                     </div>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => removeEntry(entry.id)}
-                    className="text-gray-500 hover:text-red-500"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleDuplicate(entry)}
+                      className="text-gray-500 hover:text-navy"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleEdit(entry)}
+                      className="text-gray-500 hover:text-navy"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => removeEntry(entry.id)}
+                      className="text-gray-500 hover:text-red-500"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Edit Spending Entry</DialogTitle>
+          </DialogHeader>
+          {formContent}
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddEntry} className="bg-navy hover:bg-navy/90">
+              Update
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
