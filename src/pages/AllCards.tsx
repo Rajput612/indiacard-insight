@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Check, Star } from "lucide-react";
+import { ArrowRight, Check, CreditCard, Sparkles } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { creditCards } from "@/data/creditCards";
@@ -49,7 +49,7 @@ const AllCards = () => {
                 {filteredCards.map((card) => (
                   <Card key={card.id} className="h-full flex flex-col border-t-4 hover:shadow-lg transition-shadow" 
                     style={{ borderTopColor: card.id === "1" || card.id === "4" ? "#8B5CF6" : card.id === "2" ? "#06B6D4" : card.id === "3" ? "#10B981" : "#F97316" }}>
-                    <CardHeader className="pb-0">
+                    <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-navy">{card.name}</CardTitle>
                         {card.id === "1" && (
@@ -62,9 +62,42 @@ const AllCards = () => {
                       <CardDescription>{card.issuer}</CardDescription>
                     </CardHeader>
                     
-                    <CardContent className="flex-grow py-4">
-                      <div className="mb-4 aspect-[3/2] relative bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center">
-                        <img src={card.imageUrl} alt={card.name} className="w-full h-auto object-contain" />
+                    <CardContent className="flex-grow py-3">
+                      {/* Credit Card Banner Design - Similar to Hero component */}
+                      <div className="relative mb-6">
+                        <div className="absolute -top-2 -right-2 bg-gold text-navy rounded-full p-2 z-10">
+                          <Sparkles className="h-4 w-4" />
+                        </div>
+                        
+                        <div className="bg-white rounded-xl p-2 shadow-md transform rotate-1 transition-transform hover:rotate-0">
+                          <div className="bg-gradient-to-br from-slate-800 to-navy rounded-lg p-4 w-full h-36 flex flex-col justify-between">
+                            <div className="flex justify-between items-start">
+                              <CreditCard className="h-6 w-6 text-gold" />
+                              <div className="text-right text-white">
+                                <p className="text-xs opacity-80">{card.issuer}</p>
+                                <p className="text-sm font-bold">{card.name}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="text-white">
+                              <div className="mb-1">
+                                <p className="text-xs opacity-80">Card Number</p>
+                                <p className="font-mono text-sm">•••• •••• •••• {Math.floor(1000 + Math.random() * 9000)}</p>
+                              </div>
+                              
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <p className="text-xs opacity-80">Card Holder</p>
+                                  <p className="font-medium text-sm">YOU</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs opacity-80">Expires</p>
+                                  <p className="font-medium text-sm">04/29</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       
                       <div className="space-y-3">
