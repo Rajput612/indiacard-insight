@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,15 +36,17 @@ const AllCards = () => {
           </div>
           
           <Tabs defaultValue="all" className="max-w-5xl mx-auto" onValueChange={setFilter}>
-            <TabsList className="grid grid-cols-5 w-full mb-8">
-              <TabsTrigger value="all">All Cards</TabsTrigger>
-              <TabsTrigger value="rewards">Rewards</TabsTrigger>
-              <TabsTrigger value="travel">Travel</TabsTrigger>
-              <TabsTrigger value="noFee">No Annual Fee</TabsTrigger>
-              <TabsTrigger value="shopping">Shopping</TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto pb-2 -mb-2">
+              <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 h-10 items-center justify-start sm:justify-center p-1">
+                <TabsTrigger value="all" className="min-w-[100px]">All Cards</TabsTrigger>
+                <TabsTrigger value="rewards" className="min-w-[100px]">Rewards</TabsTrigger>
+                <TabsTrigger value="travel" className="min-w-[100px]">Travel</TabsTrigger>
+                <TabsTrigger value="noFee" className="min-w-[120px]">No Annual Fee</TabsTrigger>
+                <TabsTrigger value="shopping" className="min-w-[100px]">Shopping</TabsTrigger>
+              </TabsList>
+            </div>
             
-            <TabsContent value={filter} className="mt-0">
+            <TabsContent value={filter} className="mt-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCards.map((card) => (
                   <Card key={card.id} className="h-full flex flex-col border-t-4 hover:shadow-lg transition-shadow" 
@@ -64,7 +65,6 @@ const AllCards = () => {
                     </CardHeader>
                     
                     <CardContent className="flex-grow py-3">
-                      {/* Using the new CreditCardBanner component */}
                       <div className="mb-6">
                         <CreditCardBanner card={card} size="md" />
                       </div>
