@@ -1,5 +1,6 @@
 
 import { CreditCard, Facebook, Instagram, Twitter } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -15,13 +16,13 @@ const Footer = () => {
               Helping Indian consumers find the perfect credit card match based on their unique spending habits.
             </p>
             <div className="flex space-x-4 mt-4">
-              <a href="#" className="text-gray-300 hover:text-gold transition-colors">
+              <a href="#" className="text-gray-300 hover:text-gold transition-colors" aria-label="Facebook">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-300 hover:text-gold transition-colors">
+              <a href="#" className="text-gray-300 hover:text-gold transition-colors" aria-label="Twitter">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-300 hover:text-gold transition-colors">
+              <a href="#" className="text-gray-300 hover:text-gold transition-colors" aria-label="Instagram">
                 <Instagram className="h-5 w-5" />
               </a>
             </div>
@@ -30,21 +31,21 @@ const Footer = () => {
           <div>
             <h3 className="font-medium text-gold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Home</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">About Us</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">All Credit Cards</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Contact</a></li>
+              <li><Link to="/" className="text-gray-300 hover:text-white transition-colors">Home</Link></li>
+              <li><Link to="/about" className="text-gray-300 hover:text-white transition-colors">About Us</Link></li>
+              <li><Link to="/cards" className="text-gray-300 hover:text-white transition-colors">All Credit Cards</Link></li>
+              <li><Link to="/contact" className="text-gray-300 hover:text-white transition-colors">Contact</Link></li>
             </ul>
           </div>
           
           <div>
             <h3 className="font-medium text-gold mb-4">Card Categories</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Rewards Cards</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Cashback Cards</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Travel Cards</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Fuel Cards</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">No Annual Fee Cards</a></li>
+              <li><Link to="/cards" className="text-gray-300 hover:text-white transition-colors">Rewards Cards</Link></li>
+              <li><Link to="/cards" className="text-gray-300 hover:text-white transition-colors">Cashback Cards</Link></li>
+              <li><Link to="/cards" className="text-gray-300 hover:text-white transition-colors">Travel Cards</Link></li>
+              <li><Link to="/cards" className="text-gray-300 hover:text-white transition-colors">Fuel Cards</Link></li>
+              <li><Link to="/cards" className="text-gray-300 hover:text-white transition-colors">No Annual Fee Cards</Link></li>
             </ul>
           </div>
           

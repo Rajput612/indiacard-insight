@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { ArrowRight, X, Clock, ThumbsUp, Star } from 'lucide-react';
+import { ArrowRight, X, Clock, ThumbsUp, Star, CreditCard, ShoppingCart, Zap } from 'lucide-react';
 
 const promotions = [
   {
@@ -29,6 +28,33 @@ const promotions = [
     icon: <Clock className="h-5 w-5 text-blue-500" />,
     bgColor: "bg-gradient-to-r from-blue-50 to-indigo-100",
     borderColor: "border-blue-200"
+  },
+  {
+    id: 4,
+    title: "Amazon ICICI Credit Card",
+    description: "Unlimited 5% cashback on all Amazon purchases for Prime members",
+    type: "partner",
+    icon: <ShoppingCart className="h-5 w-5 text-orange-500" />,
+    bgColor: "bg-gradient-to-r from-orange-50 to-amber-100",
+    borderColor: "border-orange-200"
+  },
+  {
+    id: 5,
+    title: "Flipkart Axis Bank Credit Card",
+    description: "Earn 5% unlimited cashback on Flipkart, Myntra and Cleartrip",
+    type: "partner",
+    icon: <CreditCard className="h-5 w-5 text-indigo-500" />,
+    bgColor: "bg-gradient-to-r from-indigo-50 to-blue-100",
+    borderColor: "border-indigo-200"
+  },
+  {
+    id: 6,
+    title: "HDFC Infinia Metal Edition",
+    description: "Exclusive invitation-only premium card with unlimited airport lounge access",
+    type: "premium",
+    icon: <Zap className="h-5 w-5 text-purple-500" />,
+    bgColor: "bg-gradient-to-r from-purple-50 to-pink-100",
+    borderColor: "border-purple-200"
   }
 ];
 
@@ -36,7 +62,6 @@ const PromotionalBanner = () => {
   const [currentPromotion, setCurrentPromotion] = useState(0);
   const [dismissed, setDismissed] = useState<number[]>([]);
   
-  // Filter out dismissed promotions
   const availablePromotions = promotions.filter(promo => !dismissed.includes(promo.id));
   
   if (availablePromotions.length === 0) {
@@ -47,7 +72,6 @@ const PromotionalBanner = () => {
   
   const handleDismiss = () => {
     setDismissed([...dismissed, promotion.id]);
-    // Move to next promotion if available
     if (availablePromotions.length > 1) {
       setCurrentPromotion(currentPromotion + 1);
     }
@@ -89,7 +113,6 @@ const PromotionalBanner = () => {
         </div>
       </div>
       
-      {/* Dots for multiple promotions */}
       {availablePromotions.length > 1 && (
         <div className="flex justify-center space-x-1 mt-2">
           {availablePromotions.map((_, index) => (
