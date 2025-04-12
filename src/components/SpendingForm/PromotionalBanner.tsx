@@ -98,9 +98,12 @@ const PromotionalBanner = () => {
   
   return (
     <div className={`w-full rounded-lg p-4 ${promotion.bgColor} border ${promotion.borderColor} relative overflow-hidden`}>
-      <div className="flex items-center justify-between">
+      <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-white/20 rounded-full"></div>
+      <div className="absolute bottom-0 left-0 w-16 h-16 -ml-6 -mb-6 bg-white/20 rounded-full"></div>
+      
+      <div className="flex items-center justify-between relative z-10">
         <div className="flex items-center space-x-3">
-          <div className="bg-white p-2 rounded-full">
+          <div className="bg-white p-2 rounded-full shadow-md">
             {promotion.icon}
           </div>
           <div>
@@ -108,7 +111,7 @@ const PromotionalBanner = () => {
             <p className="text-sm text-gray-700">{promotion.description}</p>
             <button 
               onClick={handleApply}
-              className="mt-1 text-sm font-medium text-blue-600 hover:underline flex items-center"
+              className="mt-2 text-sm font-medium bg-navy text-white px-3 py-1 rounded-full hover:bg-navy/90 transition-colors flex items-center"
             >
               Apply Now <ArrowRight className="h-3 w-3 ml-1" />
             </button>
