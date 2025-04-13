@@ -1,94 +1,57 @@
 
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Check, Clock, Star, ThumbsUp, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { creditCards } from "@/data/creditCards";
 import CreditCardBanner from "@/components/CreditCardBanner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check, Filter, Tag } from "lucide-react";
+import { useFilteredCreditCards } from "@/hooks/useFilteredCreditCards";
+import { creditCards } from "@/data/creditCards";
 
-// Define promotion types and their criteria
-const promotions = {
-  newLaunch: {
-    title: "New Launch",
-    icon: <Star className="h-4 w-4" />,
-    color: "bg-amber-500",
-    cards: ["1"], // Premium Rewards Gold
-  },
-  highApproval: {
-    title: "High Approval Rate",
-    icon: <ThumbsUp className="h-4 w-4" />,
-    color: "bg-green-500",
-    cards: ["3"], // Everyday Rewards
-  },
-  limitedTime: {
-    title: "Limited Time Offer",
-    icon: <Clock className="h-4 w-4" />,
-    color: "bg-blue-500",
-    cards: ["2"], // ShopMore Platinum
-  },
-  premium: {
-    title: "Premium Cards",
-    icon: <Zap className="h-4 w-4" />,
-    color: "bg-purple-500",
-    cards: ["4"], // Travel Elite
-  }
-};
+// Get all unique categories from credit cards
+const allCategories = Array.from(
+  new Set(
+    creditCards.flatMap(card => card.categories)
+  )
+).sort();
+
+// Get all unique banks from credit cards
+const allBanks = Array.from(
+  new Set(
+    creditCards.map(card => card.issuer)
+  )
+).sort();
 
 const AllCards = () => {
-  const location = useLocation();
-  const [filter, setFilter] = useState<string>("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryParam = searchParams.get("category");
+  const { filteredCards, loading } = useFilteredCreditCards(categoryParam || undefined);
   
-  // Parse URL parameters on component mount
+  const [currentFilter, setCurrentFilter] = useState<string | null>(categoryParam);
+  const [showFilters, setShowFilters] = useState(false);
+  
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const filterParam = params.get('filter');
-    if (filterParam && (filterParam === "all" || 
-                         filterParam === "rewards" || 
-                         filterParam === "travel" || 
-                         filterParam === "noFee" || 
-                         filterParam === "shopping" ||
-                         Object.keys(promotions).includes(filterParam))) {
-      setFilter(filterParam);
-    }
-  }, [location]);
+    // Update the current filter state when the URL parameter changes
+    setCurrentFilter(categoryParam);
+  }, [categoryParam]);
   
-  const getFilteredCards = () => {
-    if (filter === "all") return creditCards;
-    if (filter === "rewards") return creditCards.filter(card => card.categories.some(cat => cat.cashbackRate >= 3));
-    if (filter === "travel") return creditCards.filter(card => card.categories.some(cat => cat.category === "travel"));
-    if (filter === "noFee") return creditCards.filter(card => card.annualFee === 0);
-    if (filter === "shopping") return creditCards.filter(card => card.categories.some(cat => ["fashion", "electronics", "groceries"].includes(cat.category)));
-    
-    // Handle promotion-specific filters
-    for (const [key, promotion] of Object.entries(promotions)) {
-      if (filter === key) {
-        return creditCards.filter(card => promotion.cards.includes(card.id));
-      }
+  const handleCategoryFilter = (category: string | null) => {
+    if (category) {
+      setSearchParams({ category });
+      setCurrentFilter(category);
+    } else {
+      searchParams.delete("category");
+      setSearchParams(searchParams);
+      setCurrentFilter(null);
     }
     
-    return creditCards;
-  };
-
-  const getPromotionBadge = (cardId: string) => {
-    for (const [key, promotion] of Object.entries(promotions)) {
-      if (promotion.cards.includes(cardId)) {
-        return (
-          <Badge className={`${promotion.color} text-white flex items-center gap-1`}>
-            {promotion.icon}
-            {promotion.title}
-          </Badge>
-        );
-      }
+    // Close mobile filters if open
+    if (showFilters) {
+      setShowFilters(false);
     }
-    return null;
   };
-  
-  const filteredCards = getFilteredCards();
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -96,92 +59,151 @@ const AllCards = () => {
       
       <main className="flex-grow py-12 px-4 bg-gray-50">
         <div className="container mx-auto">
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-navy mb-3">Explore All Credit Cards</h1>
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-navy mb-3">
+              {currentFilter ? `${currentFilter} Credit Cards` : "All Credit Cards"}
+            </h1>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Compare features and benefits to find the perfect card for your lifestyle.
+              {currentFilter 
+                ? `Browse our selection of credit cards optimized for ${currentFilter.toLowerCase()}.` 
+                : "Find the perfect credit card that suits your lifestyle and spending habits."}
             </p>
           </div>
           
-          <Tabs value={filter} className="max-w-5xl mx-auto" onValueChange={setFilter}>
-            <div className="overflow-x-auto pb-2 -mb-2">
-              <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 h-auto items-center justify-start sm:justify-center p-1 flex-wrap gap-1">
-                <TabsTrigger value="all" className="min-w-[100px]">All Cards</TabsTrigger>
-                <TabsTrigger value="rewards" className="min-w-[100px]">Rewards</TabsTrigger>
-                <TabsTrigger value="travel" className="min-w-[100px]">Travel</TabsTrigger>
-                <TabsTrigger value="noFee" className="min-w-[120px]">No Annual Fee</TabsTrigger>
-                <TabsTrigger value="shopping" className="min-w-[100px]">Shopping</TabsTrigger>
-                
-                {/* Promotion-specific tabs */}
-                {Object.entries(promotions).map(([key, promotion]) => (
-                  <TabsTrigger 
-                    key={key} 
-                    value={key} 
-                    className="min-w-[140px] flex items-center gap-1"
+          {/* Mobile Filters Toggle */}
+          <div className="md:hidden flex justify-center mb-6">
+            <Button 
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              {showFilters ? "Hide Filters" : "Show Filters"}
+            </Button>
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Filters Sidebar */}
+            <aside className={`md:w-64 shrink-0 ${showFilters ? 'block' : 'hidden md:block'}`}>
+              <div className="bg-white rounded-lg shadow p-4 mb-4 sticky top-20">
+                <h2 className="text-lg font-bold text-navy mb-4">Categories</h2>
+                <div className="space-y-2">
+                  <div 
+                    className={`flex items-center cursor-pointer p-2 rounded-md hover:bg-gray-100 transition-colors ${
+                      !currentFilter ? 'bg-navy/10 text-navy font-medium' : ''
+                    }`}
+                    onClick={() => handleCategoryFilter(null)}
                   >
-                    {promotion.icon}
-                    {promotion.title}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
+                    <span className="flex-grow">All Cards</span>
+                    {!currentFilter && <Check className="h-4 w-4" />}
+                  </div>
+                  
+                  {allCategories.map((category) => (
+                    <div 
+                      key={category}
+                      className={`flex items-center cursor-pointer p-2 rounded-md hover:bg-gray-100 transition-colors ${
+                        currentFilter === category ? 'bg-navy/10 text-navy font-medium' : ''
+                      }`}
+                      onClick={() => handleCategoryFilter(category)}
+                    >
+                      <span className="flex-grow">{category}</span>
+                      {currentFilter === category && <Check className="h-4 w-4" />}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </aside>
             
-            <TabsContent value={filter} className="mt-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCards.map((card) => (
-                  <Card key={card.id} className="h-full flex flex-col border-t-4 hover:shadow-lg transition-shadow" 
-                    style={{ borderTopColor: card.id === "1" || card.id === "4" ? "#8B5CF6" : card.id === "2" ? "#06B6D4" : card.id === "3" ? "#10B981" : "#F97316" }}>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-navy">{card.name}</CardTitle>
-                        {getPromotionBadge(card.id)}
-                      </div>
-                      <CardDescription>{card.issuer}</CardDescription>
-                    </CardHeader>
-                    
-                    <CardContent className="flex-grow py-3">
-                      <div className="mb-6">
-                        <CreditCardBanner card={card} size="md" />
-                      </div>
+            {/* Card Grid */}
+            <div className="flex-grow">
+              {loading ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-navy"></div>
+                </div>
+              ) : filteredCards.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-lg shadow">
+                  <div className="bg-navy/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <Filter className="h-8 w-8 text-navy" />
+                  </div>
+                  <h3 className="text-xl font-bold text-navy mb-2">No Cards Found</h3>
+                  <p className="text-gray-600 mb-4">
+                    No credit cards match your current filters.
+                  </p>
+                  <Button 
+                    onClick={() => handleCategoryFilter(null)} 
+                    className="bg-navy hover:bg-navy/90"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredCards.map((card) => (
+                    <Card key={card.id} className="h-full flex flex-col hover:shadow-lg transition-shadow">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-navy flex justify-between items-start">
+                          <span>{card.name}</span>
+                          {card.highlight && (
+                            <div className="bg-gold/20 text-gold font-medium px-2 py-1 rounded-full text-xs flex items-center">
+                              <Tag className="h-3 w-3 mr-1" />
+                              {card.highlight}
+                            </div>
+                          )}
+                        </CardTitle>
+                        <div className="text-sm text-gray-500">{card.issuer}</div>
+                      </CardHeader>
                       
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div>
-                            <p className="text-gray-500">Annual Fee</p>
-                            <p className="font-medium">₹{card.annualFee}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500">Joining Fee</p>
-                            <p className="font-medium">₹{card.joinFee}</p>
-                          </div>
+                      <CardContent className="py-4 flex-grow">
+                        <div className="mb-6">
+                          <CreditCardBanner card={card} size="sm" />
                         </div>
                         
-                        <div>
-                          <p className="text-gray-500 text-sm mb-1">Key Benefits</p>
-                          <ul className="space-y-1">
-                            {card.benefits.slice(0, 3).map((benefit, index) => (
-                              <li key={index} className="flex items-start text-sm">
-                                <Check className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                                <span>{benefit.description}</span>
-                              </li>
-                            ))}
-                          </ul>
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="font-medium text-navy mb-2">Benefits</h4>
+                            <ul className="space-y-1">
+                              {card.benefits.slice(0, 3).map((benefit, idx) => (
+                                <li key={idx} className="flex items-start text-sm">
+                                  <Check className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                                  <span>{benefit.description}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-medium text-navy mb-2">Categories</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {card.categories.map((category, idx) => (
+                                <span 
+                                  key={idx} 
+                                  className="px-2 py-1 bg-navy/10 text-navy rounded-full text-xs cursor-pointer"
+                                  onClick={() => handleCategoryFilter(category)}
+                                >
+                                  {category}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                    
-                    <CardFooter className="pt-0">
-                      <Button className="w-full bg-navy hover:bg-navy/90" asChild>
-                        <a href={card.applyUrl} target="_blank" rel="noopener noreferrer">
-                          Apply Now <ArrowRight className="ml-2 h-4 w-4" />
-                        </a>
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
+                      </CardContent>
+                      
+                      <CardFooter className="pt-0">
+                        <Button 
+                          asChild 
+                          className="w-full bg-navy hover:bg-navy/90"
+                        >
+                          <a href={card.applyUrl} target="_blank" rel="noopener noreferrer">
+                            Apply Now
+                          </a>
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </main>
       
