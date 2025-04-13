@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useFilteredCreditCards } from "@/hooks/useFilteredCreditCards";
 import { Badge } from "@/components/ui/badge";
@@ -8,92 +7,75 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock, Star, Plane, CreditCard, ShoppingBag, Percent, ThumbsUp } from "lucide-react";
 
-// Define all category options that should be available
 const categoryOptions = [
-  "Rewards", 
-  "Travel", 
-  "No Annual Fee", 
-  "Shopping", 
-  "New Launch", 
-  "High Approval Rate", 
-  "Limited Time Offer", 
-  "Premium"
+  { id: "all", label: "All Cards", icon: <CreditCard className="h-4 w-4" /> },
+  { id: "rewards", label: "Rewards", icon: <Star className="h-4 w-4" /> },
+  { id: "travel", label: "Travel", icon: <Plane className="h-4 w-4" /> },
+  { id: "no-annual-fee", label: "No Annual Fee", icon: <Percent className="h-4 w-4" /> },
+  { id: "shopping", label: "Shopping", icon: <ShoppingBag className="h-4 w-4" /> },
+  { id: "new-launch", label: "New Launch", icon: <Star className="h-4 w-4" /> },
+  { id: "high-approval", label: "High Approval Rate", icon: <ThumbsUp className="h-4 w-4" /> },
+  { id: "limited-time", label: "Limited Time Offer", icon: <Clock className="h-4 w-4" /> },
+  { id: "premium", label: "Premium Cards", icon: <CreditCard className="h-4 w-4" /> }
 ];
 
 const AllCards = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { filteredCards, loading } = useFilteredCreditCards(selectedCategory || undefined);
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "Rewards": return <CreditCard className="h-4 w-4" />;
-      case "Travel": return <Plane className="h-4 w-4" />;
-      case "No Annual Fee": return <Percent className="h-4 w-4" />;
-      case "Shopping": return <ShoppingBag className="h-4 w-4" />;
-      case "New Launch": return <Star className="h-4 w-4" />;
-      case "High Approval Rate": return <ThumbsUp className="h-4 w-4" />;
-      case "Limited Time Offer": return <Clock className="h-4 w-4" />;
-      case "Premium": return <CreditCard className="h-4 w-4" />;
-      default: return <CreditCard className="h-4 w-4" />;
+  const getStatusBadge = (card: any) => {
+    if (card.isNewLaunch) {
+      return (
+        <div className="bg-orange-500 text-white text-xs px-3 py-1 rounded-full inline-flex items-center gap-1">
+          <Star className="h-3 w-3" />
+          New Launch
+        </div>
+      );
     }
-  };
-
-  const getCategoryTag = (categoryName: string) => {
-    switch (categoryName) {
-      case "New Launch":
-        return (
-          <div className="absolute top-3 right-3 bg-amber-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-            <Star className="h-3 w-3" /> New Launch
-          </div>
-        );
-      case "High Approval Rate":
-        return (
-          <div className="absolute top-3 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-            <ThumbsUp className="h-3 w-3" /> High Approval
-          </div>
-        );
-      case "Limited Time Offer":
-        return (
-          <div className="absolute top-3 right-3 bg-blue-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-            <Clock className="h-3 w-3" /> Limited Time
-          </div>
-        );
-      default:
-        return null;
+    if (card.isLimitedTime) {
+      return (
+        <div className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full inline-flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          Limited Time Offer
+        </div>
+      );
     }
+    if (card.isHighApproval) {
+      return (
+        <div className="bg-green-500 text-white text-xs px-3 py-1 rounded-full inline-flex items-center gap-1">
+          <ThumbsUp className="h-3 w-3" />
+          High Approval Rate
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-3 text-navy">Explore All Credit Cards</h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+      <main className="flex-grow container mx-auto px-4 py-12">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-navy mb-2">Explore All Credit Cards</h1>
+          <p className="text-gray-600">
             Compare features and benefits to find the perfect card for your lifestyle.
           </p>
         </div>
         
-        <div className="mb-12 flex justify-center">
-          <div className="inline-flex flex-wrap gap-2 justify-center bg-gray-50 p-3 rounded-lg">
-            <Badge 
-              variant={selectedCategory === null ? "default" : "outline"}
-              onClick={() => setSelectedCategory(null)}
-              className="cursor-pointer rounded-full px-4 py-2"
-            >
-              All Cards
-            </Badge>
-            
+        <div className="flex justify-center mb-8">
+          <div className="flex flex-wrap gap-2 justify-center">
             {categoryOptions.map((category) => (
               <Badge 
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                onClick={() => setSelectedCategory(category)}
-                className="cursor-pointer rounded-full px-4 py-2 flex items-center gap-1"
+                key={category.id}
+                variant={selectedCategory === category.id ? "default" : "outline"}
+                onClick={() => setSelectedCategory(category.id === selectedCategory ? null : category.id)}
+                className={`cursor-pointer rounded-full px-4 py-2 flex items-center gap-2 ${
+                  selectedCategory === category.id ? 'bg-navy text-white' : 'hover:bg-gray-100'
+                }`}
               >
-                {getCategoryIcon(category)}
-                {category}
+                {category.icon}
+                {category.label}
               </Badge>
             ))}
           </div>
@@ -104,72 +86,60 @@ const AllCards = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-navy"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredCards.map((card) => {
-              // Determine if this card has a special tag
-              let specialCategory = null;
-              for (const category of card.categories) {
-                const categoryName = typeof category === 'string' ? category : (category && 'category' in category) ? category.category : '';
-                if (["New Launch", "High Approval Rate", "Limited Time Offer"].includes(categoryName)) {
-                  specialCategory = categoryName;
-                  break;
-                }
-              }
-              
-              return (
-                <div 
-                  key={card.id} 
-                  className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-lg relative"
-                >
-                  {/* Special category tag if applicable */}
-                  {specialCategory && getCategoryTag(specialCategory)}
-                  
-                  <div className="p-4 pb-0">
-                    <h3 className="text-xl font-bold mb-1">{card.name}</h3>
-                    <p className="text-sm text-gray-500 mb-4">{card.issuer}</p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCards.map((card) => (
+              <div 
+                key={card.id} 
+                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+              >
+                <div className="p-4">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-navy">{card.name}</h3>
+                      <p className="text-sm text-gray-600">{card.issuer}</p>
+                    </div>
+                    {getStatusBadge(card)}
                   </div>
                   
-                  <div className="p-4">
+                  <div className="mb-6">
                     <CreditCardBanner card={card} size="md" showSpark={false} />
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 px-4 py-3 border-t border-gray-100">
+                  <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
                       <p className="text-xs text-gray-500">Annual Fee</p>
-                      <p className="font-semibold">₹{card.annualFee.toLocaleString()}</p>
+                      <p className="font-semibold">₹{card.annualFee === 0 ? '0' : card.annualFee.toLocaleString()}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Joining Fee</p>
-                      <p className="font-semibold">₹{Math.floor(card.annualFee * 0.5).toLocaleString()}</p>
+                      <p className="font-semibold">₹{card.joinFee === 0 ? '0' : card.joinFee.toLocaleString()}</p>
                     </div>
                   </div>
                   
-                  <div className="px-4 py-3 border-t border-gray-100">
-                    <p className="font-medium text-sm mb-2">Key Benefits</p>
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium mb-2">Key Benefits</h4>
                     <ul className="space-y-2">
-                      {card.rewards.cashback.categories.slice(0, 2).map((reward, idx) => (
+                      {card.benefits.slice(0, 3).map((benefit, idx) => (
                         <li key={idx} className="flex items-start gap-2 text-sm">
                           <div className="text-green-500 mt-0.5">✓</div>
-                          <div>
-                            {reward.rate}% cashback on {typeof reward.category === 'string' ? reward.category.toLowerCase() : ''}
-                          </div>
+                          <div className="text-gray-700">{benefit.description}</div>
                         </li>
                       ))}
-                      <li className="flex items-start gap-2 text-sm">
-                        <div className="text-green-500 mt-0.5">✓</div>
-                        <div>1% fuel surcharge waiver</div>
-                      </li>
                     </ul>
                   </div>
                   
-                  <div className="p-4 border-t border-gray-100">
-                    <Button className="w-full bg-navy hover:bg-navy/90 flex items-center justify-center gap-1">
-                      Apply Now <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <Button 
+                    className="w-full bg-navy hover:bg-navy/90 flex items-center justify-center gap-2"
+                    asChild
+                  >
+                    <a href={card.applyUrl} target="_blank" rel="noopener noreferrer">
+                      Apply Now
+                      <ArrowRight className="h-4 w-4" />
+                    </a>
+                  </Button>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </main>
