@@ -1,14 +1,16 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { creditCards } from "@/data/creditCards";
 import { UserPreferences } from "@/types/auth";
+import { CreditCard } from "@/types/creditCard";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const useFilteredCreditCards = (categoryFilter?: string) => {
   const { user } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [loading, setLoading] = useState(false);
-  const [filteredCards, setFilteredCards] = useState(creditCards);
+  const [filteredCards, setFilteredCards] = useState<CreditCard[]>(creditCards);
 
   useEffect(() => {
     if (user) {
