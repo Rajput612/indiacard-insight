@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { creditCards } from "@/data/creditCards";
@@ -13,7 +14,7 @@ export const useFilteredCreditCards = (categoryFilter?: string) => {
 
   useEffect(() => {
     // Initialize with cards when component mounts
-    setFilteredCards(creditCards);
+    setFilteredCards(creditCards as CreditCard[]);
     
     if (user) {
       fetchUserPreferences();
@@ -47,20 +48,20 @@ export const useFilteredCreditCards = (categoryFilter?: string) => {
   };
 
   const applyFilters = (prefs: UserPreferences | null, category?: string) => {
-    let filtered = [...creditCards];
+    let filtered = [...creditCards as CreditCard[]];
     
     // Apply bank filters if user is logged in and has preferences
     if (prefs) {
       // If there are included banks, only show those
       if (prefs.included_banks && prefs.included_banks.length > 0) {
         filtered = filtered.filter(card => 
-          prefs.included_banks.includes(card.issuer)
+          prefs.included_banks!.includes(card.issuer)
         );
       } 
       // Otherwise, exclude the excluded banks
       else if (prefs.excluded_banks && prefs.excluded_banks.length > 0) {
         filtered = filtered.filter(card => 
-          !prefs.excluded_banks.includes(card.issuer)
+          !prefs.excluded_banks!.includes(card.issuer)
         );
       }
     }
@@ -80,7 +81,7 @@ export const useFilteredCreditCards = (categoryFilter?: string) => {
       });
     }
     
-    setFilteredCards(filtered);
+    setFilteredCards(filtered as CreditCard[]);
   };
 
   return { filteredCards, loading, userPreferences: preferences };

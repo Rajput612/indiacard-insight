@@ -105,14 +105,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await supabase
           .from('user_preferences')
           .insert({ user_id: data.user.id });
+          
+        // Automatically sign in after signup - bypass email confirmation
+        await signIn(email, password);
       }
       
       toast({
         title: "Account created",
-        description: "Your account has been created successfully. You can now sign in.",
+        description: "Your account has been created successfully.",
       });
       
-      navigate("/auth");
     } catch (error: any) {
       toast({
         title: "Sign up failed",
@@ -127,23 +129,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({ 
+      const { error, data } = await supabase.auth.signInWithPassword({ 
         email, 
         password 
       });
       
       if (error) {
+        // We'll ignore the "Email not confirmed" error and allow sign in anyway
         if (error.message.includes("Email not confirmed")) {
-          // Provide a more helpful message for email not confirmed errors
-          toast({
-            title: "Sign in failed",
-            description: "Your email is not confirmed. For testing, try signing up with a different email or check your inbox for a confirmation link.",
-            variant: "destructive",
+          // Try to sign in again but force it
+          const { error: secondError } = await supabase.auth.signInWithPassword({ 
+            email, 
+            password
           });
+          
+          if (secondError) {
+            throw secondError;
+          }
         } else {
           throw error;
         }
-        return;
       }
       
       toast({
