@@ -1,15 +1,11 @@
-
 import { CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
-import { useAuth } from "@/contexts/AuthContext";
-import { UserNav } from "./UserNav";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { user } = useAuth();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -54,24 +50,16 @@ const Header = () => {
             <Link to="/cards" className="px-4 py-2 text-gray-600 hover:text-navy transition-colors rounded-md">All Cards</Link>
             <Link to="/about" className="px-4 py-2 text-gray-600 hover:text-navy transition-colors rounded-md">About</Link>
             <Link to="/contact" className="px-4 py-2 text-gray-600 hover:text-navy transition-colors rounded-md">Contact</Link>
-            
-            {user ? (
-              <UserNav />
-            ) : (
-              <Button asChild className="ml-4 bg-navy hover:bg-navy/90">
-                <Link to="/auth">Sign In</Link>
-              </Button>
-            )}
           </nav>
         </div>
         
         {/* Mobile navigation */}
         <div className={`md:hidden transition-all duration-300 ease-in-out ${
           isMenuOpen 
-            ? 'max-h-screen opacity-100 visible'
+            ? 'max-h-64 opacity-100 visible'
             : 'max-h-0 opacity-0 invisible'
         }`}>
-          <nav className="flex flex-col py-2 space-y-1 border-t mt-2">
+          <nav className="flex flex-col py-2 space-y-1">
             <Link 
               to="/" 
               className="px-4 py-2 text-gray-600 hover:text-navy hover:bg-gray-50 rounded-md transition-colors"
@@ -100,43 +88,6 @@ const Header = () => {
             >
               Contact
             </Link>
-            
-            {user ? (
-              <>
-                <Link 
-                  to="/profile" 
-                  className="px-4 py-2 text-gray-600 hover:text-navy hover:bg-gray-50 rounded-md transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  My Profile
-                </Link>
-                <Link 
-                  to="/profile?tab=cards" 
-                  className="px-4 py-2 text-gray-600 hover:text-navy hover:bg-gray-50 rounded-md transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  My Cards
-                </Link>
-                <Button 
-                  variant="ghost" 
-                  className="justify-start px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    useAuth().signOut();
-                  }}
-                >
-                  Sign Out
-                </Button>
-              </>
-            ) : (
-              <Link 
-                to="/auth" 
-                className="px-4 py-2 text-navy font-medium hover:bg-navy/10 rounded-md transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Sign In / Register
-              </Link>
-            )}
           </nav>
         </div>
       </div>

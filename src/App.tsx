@@ -9,35 +9,24 @@ import AllCards from "./pages/AllCards";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
-import Auth from "./pages/Auth";
-import Profile from "./pages/Profile";
-import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
-
-const AppWithRouter = () => (
-  <BrowserRouter>
-    <AuthProvider>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/cards" element={<AllCards />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/profile" element={<Profile />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </AuthProvider>
-  </BrowserRouter>
-);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <AppWithRouter />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/cards" element={<AllCards />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
