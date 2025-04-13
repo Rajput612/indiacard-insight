@@ -3,24 +3,75 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, Clock, Star, ThumbsUp, Zap } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { creditCards } from "@/data/creditCards";
 import CreditCardBanner from "@/components/CreditCardBanner";
 
+// Define promotion types and their criteria
+const promotions = {
+  newLaunch: {
+    title: "New Launch",
+    icon: <Star className="h-4 w-4" />,
+    color: "bg-amber-500",
+    cards: ["1"], // Premium Rewards Gold
+  },
+  highApproval: {
+    title: "High Approval Rate",
+    icon: <ThumbsUp className="h-4 w-4" />,
+    color: "bg-green-500",
+    cards: ["3"], // Everyday Rewards
+  },
+  limitedTime: {
+    title: "Limited Time Offer",
+    icon: <Clock className="h-4 w-4" />,
+    color: "bg-blue-500",
+    cards: ["2"], // ShopMore Platinum
+  },
+  premium: {
+    title: "Premium Cards",
+    icon: <Zap className="h-4 w-4" />,
+    color: "bg-purple-500",
+    cards: ["4"], // Travel Elite
+  }
+};
+
 const AllCards = () => {
   const [filter, setFilter] = useState<string>("all");
   
-  const filteredCards = filter === "all" 
-    ? creditCards 
-    : creditCards.filter(card => {
-        if (filter === "rewards") return card.categories.some(cat => cat.cashbackRate >= 3);
-        if (filter === "travel") return card.categories.some(cat => cat.category === "travel");
-        if (filter === "noFee") return card.annualFee === 0;
-        if (filter === "shopping") return card.categories.some(cat => ["fashion", "electronics", "groceries"].includes(cat.category));
-        return true;
-      });
+  const getFilteredCards = () => {
+    if (filter === "all") return creditCards;
+    if (filter === "rewards") return creditCards.filter(card => card.categories.some(cat => cat.cashbackRate >= 3));
+    if (filter === "travel") return creditCards.filter(card => card.categories.some(cat => cat.category === "travel"));
+    if (filter === "noFee") return creditCards.filter(card => card.annualFee === 0);
+    if (filter === "shopping") return creditCards.filter(card => card.categories.some(cat => ["fashion", "electronics", "groceries"].includes(cat.category)));
+    
+    // Handle promotion-specific filters
+    for (const [key, promotion] of Object.entries(promotions)) {
+      if (filter === key) {
+        return creditCards.filter(card => promotion.cards.includes(card.id));
+      }
+    }
+    
+    return creditCards;
+  };
+
+  const getPromotionBadge = (cardId: string) => {
+    for (const [key, promotion] of Object.entries(promotions)) {
+      if (promotion.cards.includes(cardId)) {
+        return (
+          <Badge className={`${promotion.color} text-white flex items-center gap-1`}>
+            {promotion.icon}
+            {promotion.title}
+          </Badge>
+        );
+      }
+    }
+    return null;
+  };
+  
+  const filteredCards = getFilteredCards();
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -37,12 +88,24 @@ const AllCards = () => {
           
           <Tabs defaultValue="all" className="max-w-5xl mx-auto" onValueChange={setFilter}>
             <div className="overflow-x-auto pb-2 -mb-2">
-              <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 h-10 items-center justify-start sm:justify-center p-1">
+              <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 h-auto items-center justify-start sm:justify-center p-1 flex-wrap gap-1">
                 <TabsTrigger value="all" className="min-w-[100px]">All Cards</TabsTrigger>
                 <TabsTrigger value="rewards" className="min-w-[100px]">Rewards</TabsTrigger>
                 <TabsTrigger value="travel" className="min-w-[100px]">Travel</TabsTrigger>
                 <TabsTrigger value="noFee" className="min-w-[120px]">No Annual Fee</TabsTrigger>
                 <TabsTrigger value="shopping" className="min-w-[100px]">Shopping</TabsTrigger>
+                
+                {/* Promotion-specific tabs */}
+                {Object.entries(promotions).map(([key, promotion]) => (
+                  <TabsTrigger 
+                    key={key} 
+                    value={key} 
+                    className="min-w-[140px] flex items-center gap-1"
+                  >
+                    {promotion.icon}
+                    {promotion.title}
+                  </TabsTrigger>
+                ))}
               </TabsList>
             </div>
             
@@ -54,12 +117,7 @@ const AllCards = () => {
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-navy">{card.name}</CardTitle>
-                        {card.id === "1" && (
-                          <Badge className="bg-gold">Best Overall</Badge>
-                        )}
-                        {card.id === "4" && (
-                          <Badge className="bg-indigo-500">Premium Pick</Badge>
-                        )}
+                        {getPromotionBadge(card.id)}
                       </div>
                       <CardDescription>{card.issuer}</CardDescription>
                     </CardHeader>

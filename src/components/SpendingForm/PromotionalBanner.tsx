@@ -35,36 +35,6 @@ const promotions = [
     bgColor: "bg-gradient-to-r from-blue-50 to-indigo-100",
     borderColor: "border-blue-200"
   },
-  {
-    id: 4,
-    card: creditCards.find(card => card.id === "5"), // Digital First
-    title: "Amazon ICICI Credit Card",
-    description: "Unlimited 5% cashback on all Amazon purchases for Prime members",
-    type: "partner",
-    icon: <ShoppingCart className="h-5 w-5 text-orange-500" />,
-    bgColor: "bg-gradient-to-r from-orange-50 to-amber-100",
-    borderColor: "border-orange-200"
-  },
-  {
-    id: 5,
-    card: creditCards.find(card => card.id === "2"), // ShopMore Platinum
-    title: "Flipkart Axis Bank Credit Card",
-    description: "Earn 5% unlimited cashback on Flipkart, Myntra and Cleartrip",
-    type: "partner",
-    icon: <ShoppingCart className="h-5 w-5 text-indigo-500" />,
-    bgColor: "bg-gradient-to-r from-indigo-50 to-blue-100",
-    borderColor: "border-indigo-200"
-  },
-  {
-    id: 6,
-    card: creditCards.find(card => card.id === "4"), // Travel Elite
-    title: "HDFC Infinia Metal Edition",
-    description: "Exclusive invitation-only premium card with unlimited airport lounge access",
-    type: "premium",
-    icon: <Zap className="h-5 w-5 text-purple-500" />,
-    bgColor: "bg-gradient-to-r from-purple-50 to-pink-100",
-    borderColor: "border-purple-200"
-  }
 ];
 
 const PromotionalBanner = () => {

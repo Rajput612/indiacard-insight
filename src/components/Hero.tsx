@@ -43,7 +43,7 @@ const Hero = () => {
               </Button>
               <Button 
                 variant="outline" 
-                className="border-white text-white hover:bg-white/10 w-full sm:w-auto"
+                className="bg-navy/20 border-white/20 text-white hover:bg-white/20 w-full sm:w-auto"
                 onClick={() => window.location.href = '/cards'}
               >
                 Explore All Cards
