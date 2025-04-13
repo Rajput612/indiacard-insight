@@ -1,5 +1,5 @@
+
 import React, { useState } from "react";
-import { CreditCard } from "@/types/creditCard";
 import { useFilteredCreditCards } from "@/hooks/useFilteredCreditCards";
 import { Badge } from "@/components/ui/badge";
 import CreditCardBanner from "@/components/CreditCardBanner";
@@ -10,10 +10,11 @@ const AllCards = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { filteredCards, loading } = useFilteredCreditCards(selectedCategory || undefined);
 
-  // Extract unique categories from all credit cards
+  // Extract unique categories from all credit cards - handle both string and object formats
   const uniqueCategories = Array.from(
     new Set(
       filteredCards.flatMap((card) => card.categories)
+        .filter((category): category is string => typeof category === 'string')
     )
   );
 
@@ -63,9 +64,15 @@ const AllCards = () => {
                 <div className="p-4">
                   <h3 className="text-lg font-semibold mb-2">{card.name}</h3>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {card.categories.map((category) => (
-                      <Badge key={category} variant="outline">{category}</Badge>
-                    ))}
+                    {card.categories.map((category, idx) => {
+                      // Handle both string and object formats for categories
+                      const categoryText = typeof category === 'string' ? category : category.category;
+                      return (
+                        <Badge key={`${categoryText}-${idx}`} variant="outline">
+                          {categoryText}
+                        </Badge>
+                      );
+                    })}
                   </div>
                   
                   {card.highlight && (

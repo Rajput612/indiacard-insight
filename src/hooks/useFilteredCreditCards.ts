@@ -10,9 +10,12 @@ export const useFilteredCreditCards = (categoryFilter?: string) => {
   const { user } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [loading, setLoading] = useState(false);
-  const [filteredCards, setFilteredCards] = useState<CreditCard[]>(creditCards);
+  const [filteredCards, setFilteredCards] = useState<CreditCard[]>([]);
 
   useEffect(() => {
+    // Initialize with cards when component mounts
+    setFilteredCards(creditCards as unknown as CreditCard[]);
+    
     if (user) {
       fetchUserPreferences();
     } else {
@@ -45,7 +48,7 @@ export const useFilteredCreditCards = (categoryFilter?: string) => {
   };
 
   const applyFilters = (prefs: UserPreferences | null, category?: string) => {
-    let filtered = [...creditCards];
+    let filtered = [...creditCards] as unknown as CreditCard[];
     
     // Apply bank filters if user is logged in and has preferences
     if (prefs) {
@@ -66,9 +69,13 @@ export const useFilteredCreditCards = (categoryFilter?: string) => {
     // Apply category filter if provided
     if (category) {
       filtered = filtered.filter(card => {
-        const categoryMatch = card.categories.some(cat => 
-          cat.toLowerCase() === category.toLowerCase()
-        );
+        const categoryMatch = card.categories.some(cat => {
+          // Handle both string and object category formats
+          if (typeof cat === 'string') {
+            return cat.toLowerCase() === category.toLowerCase();
+          }
+          return false;
+        });
         
         return categoryMatch;
       });
