@@ -5,6 +5,7 @@ import { findBestCreditCards } from "@/data/creditCards";
 import SpendingDetailStep from "./SpendingDetailStep";
 import CreditCardRecommendations from "../CreditCardRecommendations";
 import PromotionalBanner from "./PromotionalBanner";
+import CardPreferences, { CardPreferences as ICardPreferences } from "./CardPreferences";
 import { RotateCw } from "lucide-react";
 
 const SpendingFormContainer = () => {
@@ -12,6 +13,12 @@ const SpendingFormContainer = () => {
   const [spendingEntries, setSpendingEntries] = useState<SpendingEntry[]>([]);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [cardPreferences, setCardPreferences] = useState<ICardPreferences>({
+    compareCards: [],
+    excludeCards: [],
+    ownedCards: [],
+    desiredCardCount: 1
+  });
   
   const addSpendingEntry = (entry: SpendingEntry) => {
     setSpendingEntries((prev) => [...prev, entry]);
@@ -27,7 +34,7 @@ const SpendingFormContainer = () => {
     );
   };
 
-  // Calculate recommendations whenever spending entries change
+  // Calculate recommendations whenever spending entries or card preferences change
   useEffect(() => {
     if (spendingEntries.length === 0) {
       setRecommendations([]);
@@ -38,82 +45,30 @@ const SpendingFormContainer = () => {
     
     // Small delay to show calculation is happening
     const timer = setTimeout(() => {
-      generateRecommendations();
+      const recommendedCards = findBestCreditCards({
+        entries: spendingEntries,
+        preferences: cardPreferences,
+        onlinePercentage: 0, // This will be calculated inside findBestCreditCards
+        categories: {} // This will be calculated inside findBestCreditCards
+      });
+      
+      setRecommendations(recommendedCards);
       setIsCalculating(false);
     }, 300);
     
     return () => clearTimeout(timer);
-  }, [spendingEntries]);
-
-  const generateRecommendations = () => {
-    if (spendingEntries.length === 0) {
-      setRecommendations([]);
-      return;
-    }
-    
-    // Calculate total monthly spending
-    let totalMonthly = 0;
-    let onlineTotal = 0;
-    const categoryTotals: Record<string, number> = {};
-
-    spendingEntries.forEach(entry => {
-      let monthlyAmount = entry.amount;
-      
-      // Convert to monthly amount based on frequency
-      switch (entry.frequency) {
-        case 'daily':
-          monthlyAmount *= 30;
-          break;
-        case 'weekly':
-          monthlyAmount *= 4;
-          break;
-        case 'quarterly':
-          monthlyAmount /= 3;
-          break;
-        case 'yearly':
-          monthlyAmount /= 12;
-          break;
-        case 'one-time':
-          monthlyAmount /= 12; // Amortize over a year
-          break;
-      }
-      
-      totalMonthly += monthlyAmount;
-      
-      if (entry.category === 'online') {
-        onlineTotal += monthlyAmount;
-      }
-      
-      // Track spending by subcategory
-      const categoryKey = entry.subcategory;
-      if (!categoryTotals[categoryKey]) {
-        categoryTotals[categoryKey] = 0;
-      }
-      categoryTotals[categoryKey] += monthlyAmount;
-    });
-    
-    const onlinePercentage = totalMonthly > 0 ? (onlineTotal / totalMonthly) * 100 : 0;
-    
-    // Convert category totals to percentages
-    const categoryPercentages: Record<string, number> = {};
-    Object.entries(categoryTotals).forEach(([category, amount]) => {
-      categoryPercentages[category] = (amount / totalMonthly) * 100;
-    });
-    
-    // Get recommendations with entries included
-    const recommendedCards = findBestCreditCards({
-      onlinePercentage,
-      categories: categoryPercentages,
-      entries: spendingEntries
-    });
-    
-    setRecommendations(recommendedCards);
-  };
+  }, [spendingEntries, cardPreferences]);
 
   return (
     <div className="w-full max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-6 my-8 animate-fade-in">
       {/* Promotional Banner */}
       <PromotionalBanner />
+      
+      {/* Card Preferences */}
+      <CardPreferences 
+        preferences={cardPreferences}
+        onPreferencesChange={setCardPreferences}
+      />
       
       {/* Main content */}
       <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-6 mt-6">

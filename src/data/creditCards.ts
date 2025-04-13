@@ -1,4 +1,4 @@
-import { CreditCard, Platform, SpendingEntry } from "@/types/spending";
+import { CreditCard, Platform, SpendingEntry, CardPreferences } from "@/types/spending";
 
 export const creditCards: CreditCard[] = [
   {
@@ -286,7 +286,8 @@ export const getBrandsBySubcategory = (category: string, subcategory: string): s
 export const findBestCreditCards = (spendingProfile: { 
   onlinePercentage: number, 
   categories: Record<string, number>,
-  entries: SpendingEntry[]
+  entries: SpendingEntry[],
+  preferences: CardPreferences
 }): { 
   card: CreditCard;
   score: number;
@@ -298,12 +299,15 @@ export const findBestCreditCards = (spendingProfile: {
     monthlySavings: number;
   }[];
 }[] => {
-  // Add safety check for entries array
   if (!spendingProfile.entries || !Array.isArray(spendingProfile.entries)) {
     return [];
   }
 
-  const scoredCards = creditCards.map(card => {
+  const availableCards = creditCards.filter(card => 
+    !spendingProfile.preferences.excludeCards.includes(card.id)
+  );
+
+  const scoredCards = availableCards.map(card => {
     let score = 0;
     let totalPotentialSavings = 0;
     const savingsBreakdown: {
@@ -369,6 +373,26 @@ export const findBestCreditCards = (spendingProfile: {
       }
     });
 
+    if (spendingProfile.preferences.compareCards.includes(card.id)) {
+      score += 20;
+    }
+
+    if (spendingProfile.preferences.ownedCards.length > 0) {
+      const ownedCards = creditCards.filter(c => 
+        spendingProfile.preferences.ownedCards.includes(c.id)
+      );
+      
+      const ownedCategories = new Set(
+        ownedCards.flatMap(c => c.categories.map(cat => cat.category))
+      );
+      
+      card.categories.forEach(cat => {
+        if (!ownedCategories.has(cat.category)) {
+          score += 5;
+        }
+      });
+    }
+
     if (card.annualFee === 0) {
       score += 5;
     }
@@ -388,5 +412,5 @@ export const findBestCreditCards = (spendingProfile: {
 
   return scoredCards
     .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
+    .slice(0, spendingProfile.preferences.desiredCardCount);
 };
