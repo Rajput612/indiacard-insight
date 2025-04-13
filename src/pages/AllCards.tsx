@@ -1,4 +1,6 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -38,7 +40,22 @@ const promotions = {
 };
 
 const AllCards = () => {
+  const location = useLocation();
   const [filter, setFilter] = useState<string>("all");
+  
+  // Parse URL parameters on component mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const filterParam = params.get('filter');
+    if (filterParam && (filterParam === "all" || 
+                         filterParam === "rewards" || 
+                         filterParam === "travel" || 
+                         filterParam === "noFee" || 
+                         filterParam === "shopping" ||
+                         Object.keys(promotions).includes(filterParam))) {
+      setFilter(filterParam);
+    }
+  }, [location]);
   
   const getFilteredCards = () => {
     if (filter === "all") return creditCards;
@@ -86,7 +103,7 @@ const AllCards = () => {
             </p>
           </div>
           
-          <Tabs defaultValue="all" className="max-w-5xl mx-auto" onValueChange={setFilter}>
+          <Tabs value={filter} className="max-w-5xl mx-auto" onValueChange={setFilter}>
             <div className="overflow-x-auto pb-2 -mb-2">
               <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 h-auto items-center justify-start sm:justify-center p-1 flex-wrap gap-1">
                 <TabsTrigger value="all" className="min-w-[100px]">All Cards</TabsTrigger>

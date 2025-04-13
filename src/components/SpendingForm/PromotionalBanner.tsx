@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, X, Clock, ThumbsUp, Star, ShoppingCart, Zap } from 'lucide-react';
 import { creditCards } from '@/data/creditCards';
 
@@ -13,7 +14,8 @@ const promotions = [
     type: "new",
     icon: <Star className="h-5 w-5 text-amber-500" />,
     bgColor: "bg-gradient-to-r from-amber-50 to-yellow-100",
-    borderColor: "border-amber-200"
+    borderColor: "border-amber-200",
+    filterType: "newLaunch"
   },
   {
     id: 2,
@@ -23,7 +25,8 @@ const promotions = [
     type: "approval",
     icon: <ThumbsUp className="h-5 w-5 text-green-500" />,
     bgColor: "bg-gradient-to-r from-green-50 to-emerald-100",
-    borderColor: "border-green-200"
+    borderColor: "border-green-200",
+    filterType: "highApproval"
   },
   {
     id: 3,
@@ -33,11 +36,13 @@ const promotions = [
     type: "limited",
     icon: <Clock className="h-5 w-5 text-blue-500" />,
     bgColor: "bg-gradient-to-r from-blue-50 to-indigo-100",
-    borderColor: "border-blue-200"
+    borderColor: "border-blue-200",
+    filterType: "limitedTime"
   },
 ];
 
 const PromotionalBanner = () => {
+  const navigate = useNavigate();
   const [currentPromotion, setCurrentPromotion] = useState(0);
   const [dismissed, setDismissed] = useState<number[]>([]);
   
@@ -60,10 +65,9 @@ const PromotionalBanner = () => {
     setCurrentPromotion(currentPromotion + 1);
   };
 
-  const handleApply = () => {
-    if (promotion.card && promotion.card.applyUrl) {
-      window.open(promotion.card.applyUrl, "_blank");
-    }
+  const handleExplore = () => {
+    // Navigate to the cards page with the specific filter
+    navigate(`/cards?filter=${promotion.filterType}`);
   };
   
   return (
@@ -80,10 +84,10 @@ const PromotionalBanner = () => {
             <h3 className="font-bold text-navy">{promotion.title}</h3>
             <p className="text-sm text-gray-700">{promotion.description}</p>
             <button 
-              onClick={handleApply}
+              onClick={handleExplore}
               className="mt-2 text-sm font-medium bg-navy text-white px-3 py-1 rounded-full hover:bg-navy/90 transition-colors flex items-center"
             >
-              Apply Now <ArrowRight className="h-3 w-3 ml-1" />
+              Explore Cards <ArrowRight className="h-3 w-3 ml-1" />
             </button>
           </div>
         </div>
