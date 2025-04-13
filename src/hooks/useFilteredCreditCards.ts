@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { creditCards } from "@/data/creditCards";
@@ -14,7 +13,7 @@ export const useFilteredCreditCards = (categoryFilter?: string) => {
 
   useEffect(() => {
     // Initialize with cards when component mounts
-    setFilteredCards(creditCards as unknown as CreditCard[]);
+    setFilteredCards(creditCards);
     
     if (user) {
       fetchUserPreferences();
@@ -48,7 +47,7 @@ export const useFilteredCreditCards = (categoryFilter?: string) => {
   };
 
   const applyFilters = (prefs: UserPreferences | null, category?: string) => {
-    let filtered = [...creditCards] as unknown as CreditCard[];
+    let filtered = [...creditCards];
     
     // Apply bank filters if user is logged in and has preferences
     if (prefs) {
@@ -69,15 +68,15 @@ export const useFilteredCreditCards = (categoryFilter?: string) => {
     // Apply category filter if provided
     if (category) {
       filtered = filtered.filter(card => {
-        const categoryMatch = card.categories.some(cat => {
-          // Handle both string and object category formats
+        // Handle both string categories and object categories
+        return card.categories.some(cat => {
           if (typeof cat === 'string') {
             return cat.toLowerCase() === category.toLowerCase();
+          } else if (typeof cat === 'object' && cat !== null && 'category' in cat) {
+            return cat.category.toLowerCase() === category.toLowerCase();
           }
           return false;
         });
-        
-        return categoryMatch;
       });
     }
     

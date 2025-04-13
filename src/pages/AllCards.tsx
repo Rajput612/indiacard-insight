@@ -6,16 +6,32 @@ import CreditCardBanner from "@/components/CreditCardBanner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
+// Define all category options that should be available
+const categoryOptions = [
+  "Rewards", 
+  "Travel", 
+  "No Annual Fee", 
+  "Shopping", 
+  "Newly Launched", 
+  "High Approval Rate", 
+  "Limited Time Offer", 
+  "Premium"
+];
+
 const AllCards = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { filteredCards, loading } = useFilteredCreditCards(selectedCategory || undefined);
 
-  // Extract unique categories from all credit cards - handle both string and object formats
+  // Extract unique categories from cards and combine with predefined categories
   const uniqueCategories = Array.from(
-    new Set(
-      filteredCards.flatMap((card) => card.categories)
-        .filter((category): category is string => typeof category === 'string')
-    )
+    new Set([
+      ...categoryOptions,
+      ...filteredCards.flatMap(card => 
+        card.categories.map(cat => 
+          typeof cat === 'string' ? cat : cat.category
+        ).filter(Boolean) as string[]
+      )
+    ])
   );
 
   return (
@@ -66,12 +82,15 @@ const AllCards = () => {
                   <div className="flex flex-wrap gap-2 mb-4">
                     {card.categories.map((category, idx) => {
                       // Handle both string and object formats for categories
-                      const categoryText = typeof category === 'string' ? category : category.category;
-                      return (
+                      const categoryText = typeof category === 'string' 
+                        ? category 
+                        : (category && 'category' in category) ? category.category : '';
+                      
+                      return categoryText ? (
                         <Badge key={`${categoryText}-${idx}`} variant="outline">
                           {categoryText}
                         </Badge>
-                      );
+                      ) : null;
                     })}
                   </div>
                   

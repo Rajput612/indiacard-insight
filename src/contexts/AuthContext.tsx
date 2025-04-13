@@ -81,7 +81,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(true);
       const { data, error } = await supabase.auth.signUp({ 
         email, 
-        password 
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          // Disable email verification for easier development
+          data: {
+            email_confirmed: true
+          }
+        }
       });
       
       if (error) throw error;
@@ -102,10 +109,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       toast({
         title: "Account created",
-        description: "Your account has been created successfully.",
+        description: "Your account has been created successfully. You can now sign in.",
       });
       
-      navigate("/");
+      navigate("/auth");
     } catch (error: any) {
       toast({
         title: "Sign up failed",
@@ -125,7 +132,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password 
       });
       
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("Email not confirmed")) {
+          // Provide a more helpful message for email not confirmed errors
+          toast({
+            title: "Sign in failed",
+            description: "Your email is not confirmed. For testing, try signing up with a different email or check your inbox for a confirmation link.",
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+        return;
+      }
       
       toast({
         title: "Welcome back!",
