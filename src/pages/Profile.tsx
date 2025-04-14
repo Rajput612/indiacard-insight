@@ -1,15 +1,15 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, User as UserIcon } from "lucide-react";
+import { Calculator, CreditCard, User as UserIcon } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { creditCards } from "@/data/creditCards";
 import ProfileInfo from "@/components/profile/ProfileInfo";
 import CreditCardManager from "@/components/profile/CreditCardManager";
-import { User } from "@/types/user"; // Added missing import for User type
+import PurchaseAdvisor from "@/components/profile/PurchaseAdvisor";
+import { User } from "@/types/user";
 
 const ProfilePage = () => {
   const { user, isAuthenticated, isLoading, updateProfile, updateOwnedCards } = useAuth();
@@ -47,6 +47,9 @@ const ProfilePage = () => {
     updateOwnedCards(cardIds);
   };
 
+  // Get owned cards data
+  const ownedCards = allCards.filter(card => ownedCardIds.includes(card.id));
+
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen">
@@ -76,6 +79,10 @@ const ProfilePage = () => {
               <CreditCard className="h-4 w-4" />
               My Credit Cards
             </TabsTrigger>
+            <TabsTrigger value="advisor" className="flex items-center gap-2">
+              <Calculator className="h-4 w-4" />
+              Purchase Advisor
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="profile">
@@ -88,6 +95,10 @@ const ProfilePage = () => {
               ownedCardIds={ownedCardIds} 
               onUpdateOwnedCards={handleUpdateOwnedCards} 
             />
+          </TabsContent>
+
+          <TabsContent value="advisor">
+            <PurchaseAdvisor ownedCards={ownedCards} />
           </TabsContent>
         </Tabs>
       </main>
