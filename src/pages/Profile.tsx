@@ -2,38 +2,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
-import { CreditCard, Save, User as UserIcon, PlusCircle } from "lucide-react";
+import { CreditCard, User as UserIcon } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { findCreditCardById, creditCards } from "@/data/creditCards";
-import { useToast } from "@/hooks/use-toast";
+import { creditCards } from "@/data/creditCards";
+import ProfileInfo from "@/components/profile/ProfileInfo";
+import CreditCardManager from "@/components/profile/CreditCardManager";
 
 const ProfilePage = () => {
   const { user, isAuthenticated, isLoading, updateProfile, updateOwnedCards } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
   const [allCards, setAllCards] = useState<any[]>([]);
   const [ownedCardIds, setOwnedCardIds] = useState<string[]>([]);
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState("profile");
-
-  // Group cards by issuer
-  const cardsByIssuer: Record<string, any[]> = {};
-  allCards.forEach(card => {
-    if (!cardsByIssuer[card.issuer]) {
-      cardsByIssuer[card.issuer] = [];
-    }
-    cardsByIssuer[card.issuer].push(card);
-  });
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -45,56 +27,23 @@ const ProfilePage = () => {
   // Load user data
   useEffect(() => {
     if (user) {
-      setName(user.name);
-      setEmail(user.email);
       setOwnedCardIds(user.ownedCards || []);
     }
   }, [user]);
 
   // Load all credit cards
   useEffect(() => {
-    // Use the actual credit cards data instead of trying to find by ID
     setAllCards(creditCards);
   }, []);
 
-  const handleProfileUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleUpdateProfile = (userData: Partial<User>) => {
     if (!user) return;
-    
-    setIsSaving(true);
-    
-    try {
-      updateProfile({
-        name,
-        email,
-      });
-    } finally {
-      setIsSaving(false);
-    }
+    updateProfile(userData);
   };
 
-  const toggleCardOwnership = (cardId: string) => {
-    const updatedOwnedCards = ownedCardIds.includes(cardId)
-      ? ownedCardIds.filter(id => id !== cardId)
-      : [...ownedCardIds, cardId];
-    
-    setOwnedCardIds(updatedOwnedCards);
-    updateOwnedCards(updatedOwnedCards);
-    
-    toast({
-      title: ownedCardIds.includes(cardId) ? "Card removed" : "Card added",
-      description: ownedCardIds.includes(cardId) 
-        ? "Card removed from your collection" 
-        : "Card added to your collection",
-    });
-  };
-
-  const toggleIssuerExpanded = (issuer: string) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [issuer]: !prev[issuer]
-    }));
+  const handleUpdateOwnedCards = (cardIds: string[]) => {
+    setOwnedCardIds(cardIds);
+    updateOwnedCards(cardIds);
   };
 
   if (isLoading) {
@@ -129,133 +78,15 @@ const ProfilePage = () => {
           </TabsList>
           
           <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>
-                  Update your personal details
-                </CardDescription>
-              </CardHeader>
-              
-              <form onSubmit={handleProfileUpdate}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <label htmlFor="name" className="text-sm font-medium">
-                      Full Name
-                    </label>
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium">
-                      Email Address
-                    </label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                </CardContent>
-                
-                <CardFooter>
-                  <Button 
-                    type="submit" 
-                    className="flex items-center gap-2"
-                    disabled={isSaving}
-                  >
-                    {isSaving ? (
-                      <>
-                        <span className="h-4 w-4 border-t-2 border-b-2 border-white rounded-full animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4" />
-                        Save Changes
-                      </>
-                    )}
-                  </Button>
-                </CardFooter>
-              </form>
-            </Card>
+            {user && <ProfileInfo user={user} onUpdateProfile={handleUpdateProfile} />}
           </TabsContent>
           
           <TabsContent value="cards">
-            <Card>
-              <CardHeader>
-                <CardTitle>My Credit Cards</CardTitle>
-                <CardDescription>
-                  Select the credit cards you currently own by checking the boxes below
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h3 className="text-sm font-medium text-blue-800 flex items-center gap-2">
-                      <PlusCircle className="h-4 w-4" />
-                      Add your credit cards
-                    </h3>
-                    <p className="text-sm text-blue-700 mt-1">
-                      Adding the cards you own helps us provide better recommendations and insights about your credit portfolio.
-                    </p>
-                  </div>
-                  
-                  {Object.entries(cardsByIssuer).map(([issuer, cards]) => (
-                    <Collapsible
-                      key={issuer}
-                      open={expandedCategories[issuer]}
-                      onOpenChange={() => toggleIssuerExpanded(issuer)}
-                      className="border rounded-lg p-4"
-                    >
-                      <CollapsibleTrigger className="flex items-center justify-between w-full">
-                        <h3 className="text-lg font-medium">{issuer}</h3>
-                        <div className="text-sm text-gray-500">
-                          {cards.filter(card => ownedCardIds.includes(card.id)).length} of {cards.length} selected
-                        </div>
-                      </CollapsibleTrigger>
-                      
-                      <CollapsibleContent className="mt-4 space-y-3">
-                        {cards.map((card) => (
-                          <div key={card.id} className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
-                            <Checkbox
-                              id={`card-${card.id}`}
-                              checked={ownedCardIds.includes(card.id)}
-                              onCheckedChange={() => toggleCardOwnership(card.id)}
-                            />
-                            <div className="grid gap-1.5 leading-none">
-                              <label
-                                htmlFor={`card-${card.id}`}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                              >
-                                {card.name}
-                              </label>
-                              <p className="text-sm text-gray-500">
-                                {card.type} • {card.network}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </CollapsibleContent>
-                    </Collapsible>
-                  ))}
-                </div>
-              </CardContent>
-              
-              <CardFooter>
-                <p className="text-sm text-gray-500">
-                  You currently own {ownedCardIds.length} credit card{ownedCardIds.length !== 1 ? 's' : ''}
-                </p>
-              </CardFooter>
-            </Card>
+            <CreditCardManager 
+              allCards={allCards} 
+              ownedCardIds={ownedCardIds} 
+              onUpdateOwnedCards={handleUpdateOwnedCards} 
+            />
           </TabsContent>
         </Tabs>
       </main>
