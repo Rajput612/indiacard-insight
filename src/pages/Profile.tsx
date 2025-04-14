@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CreditCard, Save, User as UserIcon } from "lucide-react";
+import { CreditCard, Save, User as UserIcon, PlusCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -193,12 +193,22 @@ const ProfilePage = () => {
               <CardHeader>
                 <CardTitle>My Credit Cards</CardTitle>
                 <CardDescription>
-                  Select the credit cards you currently own
+                  Select the credit cards you currently own by checking the boxes below
                 </CardDescription>
               </CardHeader>
               
               <CardContent>
                 <div className="space-y-4">
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h3 className="text-sm font-medium text-blue-800 flex items-center gap-2">
+                      <PlusCircle className="h-4 w-4" />
+                      Add your credit cards
+                    </h3>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Adding the cards you own helps us provide better recommendations and insights about your credit portfolio.
+                    </p>
+                  </div>
+                  
                   {Object.entries(cardsByIssuer).map(([issuer, cards]) => (
                     <Collapsible
                       key={issuer}
@@ -215,7 +225,7 @@ const ProfilePage = () => {
                       
                       <CollapsibleContent className="mt-4 space-y-3">
                         {cards.map((card) => (
-                          <div key={card.id} className="flex items-start space-x-3">
+                          <div key={card.id} className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
                             <Checkbox
                               id={`card-${card.id}`}
                               checked={ownedCardIds.includes(card.id)}
@@ -224,7 +234,7 @@ const ProfilePage = () => {
                             <div className="grid gap-1.5 leading-none">
                               <label
                                 htmlFor={`card-${card.id}`}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                               >
                                 {card.name}
                               </label>
@@ -239,6 +249,12 @@ const ProfilePage = () => {
                   ))}
                 </div>
               </CardContent>
+              
+              <CardFooter>
+                <p className="text-sm text-gray-500">
+                  You currently own {ownedCardIds.length} credit card{ownedCardIds.length !== 1 ? 's' : ''}
+                </p>
+              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>
