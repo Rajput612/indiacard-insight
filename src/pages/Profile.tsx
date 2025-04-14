@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import { creditCards } from "@/data/creditCards";
 import ProfileInfo from "@/components/profile/ProfileInfo";
 import CreditCardManager from "@/components/profile/CreditCardManager";
+import { User } from "@/types/user"; // Added missing import for User type
 
 const ProfilePage = () => {
   const { user, isAuthenticated, isLoading, updateProfile, updateOwnedCards } = useAuth();
