@@ -283,6 +283,10 @@ export const getBrandsBySubcategory = (category: string, subcategory: string): s
   return brands[category as keyof typeof brands] || [];
 };
 
+export const findCreditCardById = (id: string): CreditCard | undefined => {
+  return creditCards.find(card => card.id === id);
+};
+
 export const findBestCreditCards = (spendingProfile: { 
   onlinePercentage: number, 
   categories: Record<string, number>,
