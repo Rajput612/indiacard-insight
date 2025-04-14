@@ -11,11 +11,13 @@ import { CreditCard, Save, User as UserIcon, PlusCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { findCreditCardById } from "@/data/creditCards";
+import { findCreditCardById, creditCards } from "@/data/creditCards";
+import { useToast } from "@/hooks/use-toast";
 
 const ProfilePage = () => {
   const { user, isAuthenticated, isLoading, updateProfile, updateOwnedCards } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -51,17 +53,8 @@ const ProfilePage = () => {
 
   // Load all credit cards
   useEffect(() => {
-    // In a real app, this would be a fetch call to an API
-    // Here we simulate by getting all card IDs
-    const cards: any[] = [];
-    for (let i = 1; i <= 30; i++) {
-      const cardId = `card${i}`;
-      const card = findCreditCardById(cardId);
-      if (card) {
-        cards.push(card);
-      }
-    }
-    setAllCards(cards);
+    // Use the actual credit cards data instead of trying to find by ID
+    setAllCards(creditCards);
   }, []);
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -88,6 +81,13 @@ const ProfilePage = () => {
     
     setOwnedCardIds(updatedOwnedCards);
     updateOwnedCards(updatedOwnedCards);
+    
+    toast({
+      title: ownedCardIds.includes(cardId) ? "Card removed" : "Card added",
+      description: ownedCardIds.includes(cardId) 
+        ? "Card removed from your collection" 
+        : "Card added to your collection",
+    });
   };
 
   const toggleIssuerExpanded = (issuer: string) => {
