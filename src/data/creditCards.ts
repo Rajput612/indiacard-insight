@@ -296,22 +296,136 @@ export const findCreditCardById = (id: string): CreditCard | undefined => {
   return creditCards.find(card => card.id === id);
 };
 
-export const findBestCreditCards = (spendingProfile: { 
-  onlinePercentage: number, 
-  categories: Record<string, number>,
-  entries: SpendingEntry[],
-  preferences: CardPreferences
-}): { 
-  card: CreditCard;
-  score: number;
-  potentialSavings: number;
+interface CardGroupResult {
+  cards: {
+    card: CreditCard;
+    savingsBreakdown: {
+      category: string;
+      monthlySpend: number;
+      cashbackRate: number;
+      monthlySavings: number;
+    }[];
+    totalSavings: number;
+    coveragePercentage: number;
+  }[];
+  totalGroupSavings: number;
+  spendCoverage: number;
+}
+
+function generateCombinations<T>(array: T[], size: number): T[][] {
+  if (size === 1) return array.map(item => [item]);
+  
+  const combinations: T[][] = [];
+  
+  for (let i = 0; i < array.length - size + 1; i++) {
+    const current = array[i];
+    const subCombinations = generateCombinations(
+      array.slice(i + 1),
+      size - 1
+    );
+    
+    subCombinations.forEach(subCombination => {
+      combinations.push([current, ...subCombination]);
+    });
+  }
+  
+  return combinations;
+}
+
+function calculateCardSavings(
+  card: CreditCard,
+  spendingEntries: SpendingEntry[]
+): {
   savingsBreakdown: {
     category: string;
     monthlySpend: number;
     cashbackRate: number;
     monthlySavings: number;
   }[];
-}[] => {
+  totalSavings: number;
+  coveredSpend: number;
+  totalSpend: number;
+} {
+  const savingsBreakdown: {
+    category: string;
+    monthlySpend: number;
+    cashbackRate: number;
+    monthlySavings: number;
+  }[] = [];
+  
+  let totalSavings = 0;
+  let coveredSpend = 0;
+  let totalSpend = 0;
+
+  const monthlySpending = spendingEntries.map(entry => {
+    let monthlyAmount = entry.amount;
+    switch (entry.frequency) {
+      case 'daily':
+        monthlyAmount *= 30;
+        break;
+      case 'weekly':
+        monthlyAmount *= 4;
+        break;
+      case 'quarterly':
+        monthlyAmount /= 3;
+        break;
+      case 'yearly':
+        monthlyAmount /= 12;
+        break;
+      case 'one-time':
+        monthlyAmount /= 12;
+        break;
+    }
+    return {
+      ...entry,
+      monthlyAmount
+    };
+  });
+
+  monthlySpending.forEach(spending => {
+    totalSpend += spending.monthlyAmount;
+    
+    const matchingCategory = card.categories.find(cat => {
+      if (cat.category.toLowerCase() === spending.subcategory.toLowerCase()) {
+        return true;
+      }
+      if ((cat.category === 'online' && spending.category === 'online') ||
+          (cat.category === 'offline' && spending.category === 'offline')) {
+        return true;
+      }
+      if (cat.category === 'food delivery' && 
+          (spending.subcategory === 'foodAndBeverages' && spending.platform === 'app')) {
+        return true;
+      }
+      return false;
+    });
+
+    if (matchingCategory) {
+      const monthlySavings = (spending.monthlyAmount * matchingCategory.cashbackRate) / 100;
+      totalSavings += monthlySavings;
+      coveredSpend += spending.monthlyAmount;
+
+      savingsBreakdown.push({
+        category: spending.subcategory,
+        monthlySpend: spending.monthlyAmount,
+        cashbackRate: matchingCategory.cashbackRate,
+        monthlySavings
+      });
+    }
+  });
+
+  return {
+    savingsBreakdown,
+    totalSavings,
+    coveredSpend,
+    totalSpend
+  };
+}
+
+export const findBestCreditCards = (spendingProfile: { 
+  entries: SpendingEntry[],
+  preferences: CardPreferences
+}): CardGroupResult[] => {
   if (!spendingProfile.entries || !Array.isArray(spendingProfile.entries)) {
     return [];
   }
@@ -321,110 +435,42 @@ export const findBestCreditCards = (spendingProfile: {
     card.status === CARD_STATUS.ACTIVE
   );
 
-  const scoredCards = availableCards.map(card => {
-    let score = 0;
-    let totalPotentialSavings = 0;
-    const savingsBreakdown: {
-      category: string;
-      monthlySpend: number;
-      cashbackRate: number;
-      monthlySavings: number;
-    }[] = [];
+  const allCombinations: CreditCard[][] = [];
+  for (let size = 1; size <= spendingProfile.preferences.desiredCardCount; size++) {
+    allCombinations.push(...generateCombinations(availableCards, size));
+  }
 
-    const monthlySpending = spendingProfile.entries.map(entry => {
-      let monthlyAmount = entry.amount;
-      switch (entry.frequency) {
-        case 'daily':
-          monthlyAmount *= 30;
-          break;
-        case 'weekly':
-          monthlyAmount *= 4;
-          break;
-        case 'quarterly':
-          monthlyAmount /= 3;
-          break;
-        case 'yearly':
-          monthlyAmount /= 12;
-          break;
-        case 'one-time':
-          monthlyAmount /= 12;
-          break;
-      }
+  const groupResults: CardGroupResult[] = allCombinations.map(cardGroup => {
+    const cardResults = cardGroup.map(card => {
+      const {
+        savingsBreakdown,
+        totalSavings,
+        coveredSpend,
+        totalSpend
+      } = calculateCardSavings(card, spendingProfile.entries);
+
       return {
-        ...entry,
-        monthlyAmount
+        card,
+        savingsBreakdown,
+        totalSavings,
+        coveragePercentage: (coveredSpend / totalSpend) * 100
       };
     });
 
-    monthlySpending.forEach(spending => {
-      const matchingCategory = card.categories.find(cat => {
-        if (cat.category.toLowerCase() === spending.subcategory.toLowerCase()) {
-          return true;
-        }
-        if ((cat.category === 'online' && spending.category === 'online') ||
-            (cat.category === 'offline' && spending.category === 'offline')) {
-          return true;
-        }
-        if (cat.category === 'food delivery' && 
-            (spending.subcategory === 'foodAndBeverages' && spending.platform === 'app')) {
-          return true;
-        }
-        return false;
-      });
-
-      if (matchingCategory) {
-        const monthlySavings = (spending.monthlyAmount * matchingCategory.cashbackRate) / 100;
-        totalPotentialSavings += monthlySavings;
-
-        savingsBreakdown.push({
-          category: spending.subcategory,
-          monthlySpend: spending.monthlyAmount,
-          cashbackRate: matchingCategory.cashbackRate,
-          monthlySavings
-        });
-
-        score += (matchingCategory.cashbackRate * spending.monthlyAmount / 1000);
-      }
-    });
-
-    if (spendingProfile.preferences.compareCards.includes(card.id)) {
-      score += 20;
-    }
-
-    if (spendingProfile.preferences.ownedCards.length > 0) {
-      const ownedCards = creditCards.filter(c => 
-        spendingProfile.preferences.ownedCards.includes(c.id)
-      );
-      
-      const ownedCategories = new Set(
-        ownedCards.flatMap(c => c.categories.map(cat => cat.category))
-      );
-      
-      card.categories.forEach(cat => {
-        if (!ownedCategories.has(cat.category)) {
-          score += 5;
-        }
-      });
-    }
-
-    if (card.annualFee === 0) {
-      score += 5;
-    }
-    
-    const annualSavings = totalPotentialSavings * 12;
-    if (annualSavings > card.annualFee * 3) {
-      score += 10;
-    }
+    const totalGroupSavings = cardResults.reduce((sum, result) => sum + result.totalSavings, 0);
+    const spendCoverage = Math.min(
+      100,
+      cardResults.reduce((sum, result) => sum + result.coveragePercentage, 0)
+    );
 
     return {
-      card,
-      score,
-      potentialSavings: totalPotentialSavings,
-      savingsBreakdown
+      cards: cardResults,
+      totalGroupSavings,
+      spendCoverage
     };
   });
 
-  return scoredCards
-    .sort((a, b) => b.score - a.score)
-    .slice(0, spendingProfile.preferences.desiredCardCount);
+  return groupResults
+    .sort((a, b) => b.totalGroupSavings - a.totalGroupSavings)
+    .slice(0, 10);
 };
