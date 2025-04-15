@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,10 +100,24 @@ const PurchaseAdvisor = ({ ownedCards }: PurchaseAdvisorProps) => {
     setIsCalculating(true);
     
     const purchaseAmount = parseFloat(amount);
+    
+    // Debug output
+    console.log("Calculating rewards for:", {
+      purchaseAmount,
+      category,
+      purchaseType,
+      ownedCards: ownedCards.length
+    });
 
     // Calculate rewards for each card
     const cardResults = ownedCards.map(card => {
+      // Debug each card
+      console.log("Processing card:", card.name, "with categories:", card.categories);
+      
       const matchingCategory = card.categories.find(cat => {
+        // Debug category matching
+        console.log("Checking category:", cat.category, "against:", category);
+        
         if (cat.category.toLowerCase() === category.toLowerCase()) {
           return true;
         }
@@ -116,6 +131,12 @@ const PurchaseAdvisor = ({ ownedCards }: PurchaseAdvisorProps) => {
       const cashbackRate = matchingCategory?.cashbackRate || 0;
       const cashbackAmount = (purchaseAmount * cashbackRate) / 100;
 
+      console.log("Card result:", {
+        cardName: card.name,
+        cashbackRate,
+        cashbackAmount
+      });
+
       return {
         cardId: card.id,
         cardName: card.name,
@@ -125,6 +146,8 @@ const PurchaseAdvisor = ({ ownedCards }: PurchaseAdvisorProps) => {
       };
     });
 
+    // Make sure to update state even if no results match
+    console.log("Final results:", cardResults);
     setResults(cardResults.sort((a, b) => b.cashbackAmount - a.cashbackAmount));
     setIsCalculating(false);
   };
