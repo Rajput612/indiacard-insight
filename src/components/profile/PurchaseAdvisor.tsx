@@ -133,7 +133,7 @@ const PurchaseAdvisor = ({ ownedCards }: PurchaseAdvisorProps) => {
                 <SelectValue placeholder="Select Platform" />
               </SelectTrigger>
               <SelectContent>
-                {platform === "online" ? (
+                {purchaseType === "online" ? (
                   <>
                     <SelectItem value="app">App</SelectItem>
                     <SelectItem value="website">Website</SelectItem>
