@@ -1,4 +1,3 @@
-
 import { CreditCard, Sparkles } from "lucide-react";
 import type { CreditCard as CreditCardType } from "@/types/spending";
 
@@ -47,9 +46,9 @@ const CreditCardBanner = ({ card, size = 'md', showSpark = true }: CreditCardBan
   const cardDecoration = getCardDecoration();
   
   return (
-    <div className="relative">
+    <div className="relative" role="img" aria-label={`${card.name} credit card from ${card.issuer}`}>
       {showSpark && (
-        <div className={`absolute ${sparkPosition} bg-gold text-navy rounded-full ${sparkPadding} z-10`}>
+        <div className={`absolute ${sparkPosition} bg-gold text-navy rounded-full ${sparkPadding} z-10`} aria-hidden="true">
           <Sparkles className={sparkSize} />
         </div>
       )}
@@ -57,12 +56,12 @@ const CreditCardBanner = ({ card, size = 'md', showSpark = true }: CreditCardBan
       <div className="bg-white rounded-xl p-2 shadow-md transform rotate-1 transition-transform hover:rotate-0 hover:scale-105">
         <div className={`bg-gradient-to-br ${cardStyle} rounded-lg p-4 w-full ${bannerHeight} flex flex-col justify-between relative overflow-hidden ${cardDecoration}`}>
           {/* Card chip and wave pattern overlay */}
-          <div className="absolute top-1/2 left-4 w-8 h-5 bg-gold/40 rounded-sm"></div>
-          <div className="absolute bottom-0 left-0 w-full h-12 bg-white/5"></div>
-          <div className="absolute -right-6 top-6 w-12 h-12 rounded-full bg-white/10"></div>
+          <div className="absolute top-1/2 left-4 w-8 h-5 bg-gold/40 rounded-sm" aria-hidden="true"></div>
+          <div className="absolute bottom-0 left-0 w-full h-12 bg-white/5" aria-hidden="true"></div>
+          <div className="absolute -right-6 top-6 w-12 h-12 rounded-full bg-white/10" aria-hidden="true"></div>
           
           <div className="flex justify-between items-start relative z-10">
-            <CreditCard className={`${cardIconSize} text-gold`} />
+            <CreditCard className={`${cardIconSize} text-gold`} aria-hidden="true" />
             <div className="text-right text-white">
               <p className={`text-xs opacity-80`}>{card.issuer}</p>
               <p className={fontSizes[size] + " font-bold"}>{card.name}</p>
@@ -72,7 +71,7 @@ const CreditCardBanner = ({ card, size = 'md', showSpark = true }: CreditCardBan
           <div className="text-white relative z-10">
             <div className="mb-1">
               <p className="text-xs opacity-80">Card Number</p>
-              <p className={`font-mono ${fontSizes[size]}`}>•••• •••• •••• {Math.floor(1000 + Math.random() * 9000)}</p>
+              <p className={`font-mono ${fontSizes[size]}`} aria-label="Card number ending in 1234">•••• •••• •••• 1234</p>
             </div>
             
             <div className="flex justify-between items-center">

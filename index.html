@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -14,25 +13,53 @@
     <meta property="og:url" content="https://indiacardinsight.com/" />
     <meta property="og:title" content="IndiaCard Insight | Smart Credit Card Recommendations" />
     <meta property="og:description" content="Find the perfect credit card match for your lifestyle. Compare cards, calculate rewards, and make informed decisions." />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:image" content="https://indiacardinsight.com/opengraph-image.png" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@indiacardinsight" />
     <meta name="twitter:title" content="IndiaCard Insight | Smart Credit Card Recommendations" />
     <meta name="twitter:description" content="Find the perfect credit card match for your lifestyle. Compare cards, calculate rewards, and make informed decisions." />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:image" content="https://indiacardinsight.com/opengraph-image.png" />
 
     <!-- Additional SEO tags -->
     <meta name="robots" content="index, follow" />
     <meta name="googlebot" content="index, follow" />
     <link rel="canonical" href="https://indiacardinsight.com/" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "IndiaCard Insight",
+        "url": "https://indiacardinsight.com",
+        "description": "Compare and find the best credit cards in India with personalized recommendations based on your spending habits.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://indiacardinsight.com/cards?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "IndiaCard Insight",
+        "url": "https://indiacardinsight.com",
+        "logo": "https://indiacardinsight.com/logo.png",
+        "sameAs": [
+          "https://twitter.com/indiacardinsight",
+          "https://facebook.com/indiacardinsight"
+        ]
+      }
+    </script>
   </head>
 
   <body>
     <div id="root"></div>
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

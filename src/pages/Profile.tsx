@@ -70,26 +70,42 @@ const ProfilePage = () => {
         <h1 className="text-3xl font-bold mb-8">Your Profile</h1>
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-8">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <UserIcon className="h-4 w-4" />
-              Personal Info
-            </TabsTrigger>
-            <TabsTrigger value="cards" className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              My Credit Cards
-            </TabsTrigger>
-            <TabsTrigger value="advisor" className="flex items-center gap-2">
-              <Calculator className="h-4 w-4" />
-              Purchase Advisor
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-2 -mb-2">
+            <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 h-auto items-center justify-start sm:justify-center p-1 flex-wrap gap-1">
+              <TabsTrigger 
+                value="profile" 
+                className="flex items-center gap-2 min-w-[120px] sm:min-w-[140px] data-[state=active]:bg-navy data-[state=active]:text-white"
+              >
+                <UserIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">Personal Info</span>
+                <span className="sm:hidden">Profile</span>
+              </TabsTrigger>
+              
+              <TabsTrigger 
+                value="cards" 
+                className="flex items-center gap-2 min-w-[120px] sm:min-w-[140px] data-[state=active]:bg-navy data-[state=active]:text-white"
+              >
+                <CreditCard className="h-4 w-4" />
+                <span className="hidden sm:inline">My Credit Cards</span>
+                <span className="sm:hidden">Cards</span>
+              </TabsTrigger>
+              
+              <TabsTrigger 
+                value="advisor" 
+                className="flex items-center gap-2 min-w-[120px] sm:min-w-[140px] data-[state=active]:bg-navy data-[state=active]:text-white"
+              >
+                <Calculator className="h-4 w-4" />
+                <span className="hidden sm:inline">Purchase Advisor</span>
+                <span className="sm:hidden">Advisor</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
           
-          <TabsContent value="profile">
+          <TabsContent value="profile" className="mt-6">
             {user && <ProfileInfo user={user} onUpdateProfile={handleUpdateProfile} />}
           </TabsContent>
           
-          <TabsContent value="cards">
+          <TabsContent value="cards" className="mt-6">
             <CreditCardManager 
               allCards={allCards} 
               ownedCardIds={ownedCardIds} 
@@ -97,7 +113,7 @@ const ProfilePage = () => {
             />
           </TabsContent>
 
-          <TabsContent value="advisor">
+          <TabsContent value="advisor" className="mt-6">
             <PurchaseAdvisor ownedCards={ownedCards} />
           </TabsContent>
         </Tabs>
