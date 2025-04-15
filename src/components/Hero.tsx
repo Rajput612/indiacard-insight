@@ -86,7 +86,7 @@ const Hero = () => {
               )}
               
               {/* Feature Badge - Adjusted positioning */}
-              <div className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/2 bg-gold text-navy font-bold py-1 px-3 rounded-full text-sm shadow-lg">
+              <div className="absolute top-0 right-0 transform translate-x-1/5 -translate-y-1/2 bg-gold text-navy font-bold py-1 px-3 rounded-full text-sm shadow-lg">
                 {currentCardIndex === 0 ? "Best Overall" : currentCardIndex === 1 ? "Premium Pick" : "Top Cashback"}
               </div>
               
