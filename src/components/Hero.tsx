@@ -21,7 +21,7 @@ const Hero = () => {
   };
   
   return (
-    <div className="bg-gradient-to-br from-navy to-slate-blue text-white py-12 md:py-24">
+    <div className="bg-gradient-to-br from-navy to-slate-blue text-white py-12 md:py-24 overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
           <div className="w-full md:w-1/2 text-center md:text-left">
@@ -85,8 +85,8 @@ const Hero = () => {
                 </div>
               )}
               
-              {/* Feature Badge */}
-              <div className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/2 bg-gold text-navy font-bold py-1 px-3 rounded-full text-sm shadow-lg">
+              {/* Feature Badge - Adjusted positioning */}
+              <div className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-gold text-navy font-bold py-1 px-3 rounded-full text-sm shadow-lg">
                 {currentCardIndex === 0 ? "Best Overall" : currentCardIndex === 1 ? "Premium Pick" : "Top Cashback"}
               </div>
               
