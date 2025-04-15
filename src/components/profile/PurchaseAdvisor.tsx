@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -101,8 +102,7 @@ const PurchaseAdvisor = ({ ownedCards }: PurchaseAdvisorProps) => {
       toast({
         variant: "destructive",
         title: "No Cards Added",
-        description: "Please add the credit cards you own before using the Purchase Advisor.",
-        icon: <AlertTriangle className="h-4 w-4" />
+        description: "Please add the credit cards you own before using the Purchase Advisor."
       });
       return;
     }
