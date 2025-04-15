@@ -8,29 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { OCCUPATION_TYPES, SPENDING_CATEGORIES, SCORE_RANGES, PATTERNS, VALIDATION_MESSAGES, CIBIL_IMPROVEMENT_TIPS } from "@/constants";
 
 interface ProfileInfoProps {
   user: User;
   onUpdateProfile: (userData: Partial<User>) => void;
 }
-
-const occupationTypes = [
-  { value: "salaried", label: "Salaried" },
-  { value: "self-employed", label: "Self-Employed" },
-  { value: "business", label: "Business Owner" },
-  { value: "other", label: "Other" }
-];
-
-const spendingCategories = [
-  "Travel",
-  "Shopping",
-  "Dining",
-  "Entertainment",
-  "Fuel",
-  "Groceries",
-  "Bills & Utilities",
-  "Healthcare"
-];
 
 const ProfileInfo = ({ user, onUpdateProfile }: ProfileInfoProps) => {
   const { toast } = useToast();
@@ -55,8 +38,7 @@ const ProfileInfo = ({ user, onUpdateProfile }: ProfileInfoProps) => {
   });
 
   const validatePAN = (pan: string) => {
-    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-    return panRegex.test(pan);
+    return PATTERNS.PAN.test(pan);
   };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -79,7 +61,7 @@ const ProfileInfo = ({ user, onUpdateProfile }: ProfileInfoProps) => {
     if (!validatePAN(cibilCheckData.pan)) {
       toast({
         title: "Invalid PAN",
-        description: "Please enter a valid PAN number",
+        description: VALIDATION_MESSAGES.PAN.INVALID,
         variant: "destructive"
       });
       return;
@@ -88,7 +70,7 @@ const ProfileInfo = ({ user, onUpdateProfile }: ProfileInfoProps) => {
     if (!cibilCheckData.cibilEmail) {
       toast({
         title: "Email Required",
-        description: "Please enter your CIBIL registered email",
+        description: VALIDATION_MESSAGES.CIBIL.EMAIL_REQUIRED,
         variant: "destructive"
       });
       return;
@@ -101,7 +83,7 @@ const ProfileInfo = ({ user, onUpdateProfile }: ProfileInfoProps) => {
       // Simulate CIBIL check
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const mockScore = Math.floor(Math.random() * (800 - 300 + 1)) + 300;
+      const mockScore = Math.floor(Math.random() * (SCORE_RANGES.CIBIL.MAX - SCORE_RANGES.CIBIL.MIN + 1)) + SCORE_RANGES.CIBIL.MIN;
       
       onUpdateProfile({
         cibilScore: mockScore,
@@ -121,15 +103,15 @@ const ProfileInfo = ({ user, onUpdateProfile }: ProfileInfoProps) => {
 
   const getCibilScoreColor = (score?: number) => {
     if (!score) return "bg-gray-200";
-    if (score >= 750) return "bg-green-500";
-    if (score >= 650) return "bg-yellow-500";
+    if (score >= SCORE_RANGES.CIBIL.EXCELLENT) return "bg-green-500";
+    if (score >= SCORE_RANGES.CIBIL.GOOD) return "bg-yellow-500";
     return "bg-red-500";
   };
 
   const getCibilScoreText = (score?: number) => {
     if (!score) return "Not Available";
-    if (score >= 750) return "Excellent";
-    if (score >= 650) return "Good";
+    if (score >= SCORE_RANGES.CIBIL.EXCELLENT) return "Excellent";
+    if (score >= SCORE_RANGES.CIBIL.GOOD) return "Good";
     return "Needs Improvement";
   };
 
@@ -164,12 +146,12 @@ const ProfileInfo = ({ user, onUpdateProfile }: ProfileInfoProps) => {
                 <span className="font-medium">{getCibilScoreText(user.cibilScore)}</span>
               </div>
               <Progress 
-                value={user.cibilScore ? ((user.cibilScore - 300) / 5) : 0} 
+                value={user.cibilScore ? ((user.cibilScore - SCORE_RANGES.CIBIL.MIN) / 5) : 0} 
                 className={`h-2 ${getCibilScoreColor(user.cibilScore)}`}
               />
               <div className="flex justify-between text-xs text-gray-500">
-                <span>300</span>
-                <span>900</span>
+                <span>{SCORE_RANGES.CIBIL.MIN}</span>
+                <span>{SCORE_RANGES.CIBIL.MAX}</span>
               </div>
               {user.lastCibilCheck && (
                 <p className="text-xs text-gray-500 mt-2">
@@ -179,16 +161,15 @@ const ProfileInfo = ({ user, onUpdateProfile }: ProfileInfoProps) => {
             </div>
           </div>
 
-          {user.cibilScore && user.cibilScore < 650 && (
+          {user.cibilScore && user.cibilScore < SCORE_RANGES.CIBIL.GOOD && (
             <div className="flex p-4 bg-yellow-50 rounded-lg">
               <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 flex-shrink-0" />
               <div className="text-sm text-yellow-700">
                 <p className="font-medium">Improve Your Credit Score</p>
                 <ul className="list-disc list-inside mt-1 space-y-1">
-                  <li>Pay your credit card bills and EMIs on time</li>
-                  <li>Keep credit utilization below 30%</li>
-                  <li>Maintain a good mix of credit types</li>
-                  <li>Avoid multiple credit applications in short periods</li>
+                  {CIBIL_IMPROVEMENT_TIPS.map((tip, index) => (
+                    <li key={index}>{tip}</li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -269,7 +250,7 @@ const ProfileInfo = ({ user, onUpdateProfile }: ProfileInfoProps) => {
                     <SelectValue placeholder="Select employment type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {occupationTypes.map(type => (
+                    {OCCUPATION_TYPES.map(type => (
                       <SelectItem key={type.value} value={type.value}>
                         {type.label}
                       </SelectItem>
@@ -311,7 +292,7 @@ const ProfileInfo = ({ user, onUpdateProfile }: ProfileInfoProps) => {
                 Preferred Spending Categories
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {spendingCategories.map(category => (
+                {SPENDING_CATEGORIES.map(category => (
                   <label
                     key={category}
                     className="flex items-center space-x-2 text-sm cursor-pointer"

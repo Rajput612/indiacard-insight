@@ -1,4 +1,5 @@
 import { CreditCard, Platform, SpendingEntry, CardPreferences } from "@/types/spending";
+import { CARD_STATUS, CARD_STATUS_MESSAGES } from "@/constants/cards";
 
 export const creditCards: CreditCard[] = [
   {
@@ -10,6 +11,7 @@ export const creditCards: CreditCard[] = [
     interestRate: 3.5,
     minIncome: 800000,
     creditScore: 750,
+    status: CARD_STATUS.ACTIVE,
     benefits: [
       {
         type: "cashback",
@@ -53,6 +55,7 @@ export const creditCards: CreditCard[] = [
     interestRate: 3.4,
     minIncome: 600000,
     creditScore: 700,
+    status: CARD_STATUS.ACTIVE,
     benefits: [
       {
         type: "cashback",
@@ -91,6 +94,7 @@ export const creditCards: CreditCard[] = [
     interestRate: 3.8,
     minIncome: 400000,
     creditScore: 680,
+    status: CARD_STATUS.ACTIVE,
     benefits: [
       {
         type: "cashback",
@@ -129,6 +133,7 @@ export const creditCards: CreditCard[] = [
     interestRate: 3.7,
     minIncome: 1000000,
     creditScore: 770,
+    status: CARD_STATUS.ACTIVE,
     benefits: [
       {
         type: "milesEarning",
@@ -177,6 +182,10 @@ export const creditCards: CreditCard[] = [
     interestRate: 3.6,
     minIncome: 500000,
     creditScore: 700,
+    status: CARD_STATUS.DISCONTINUED,
+    statusMessage: "This card has been replaced by our new Digital Plus card",
+    discontinuedDate: "2024-03-01",
+    replacementCardId: "6",
     benefits: [
       {
         type: "cashback",
@@ -308,7 +317,8 @@ export const findBestCreditCards = (spendingProfile: {
   }
 
   const availableCards = creditCards.filter(card => 
-    !spendingProfile.preferences.excludeCards.includes(card.id)
+    !spendingProfile.preferences.excludeCards.includes(card.id) &&
+    card.status === CARD_STATUS.ACTIVE
   );
 
   const scoredCards = availableCards.map(card => {

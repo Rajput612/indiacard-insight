@@ -1,4 +1,3 @@
-
 // Credit Card types
 export interface CreditCard {
   id: string;
@@ -15,6 +14,10 @@ export interface CreditCard {
   applyUrl: string;
   type?: string;
   network?: string;
+  status: 0 | 1 | 2; // 0: inactive, 1: active, 2: discontinued
+  statusMessage?: string; // Custom message for status
+  discontinuedDate?: string; // Date when card was discontinued
+  replacementCardId?: string; // ID of replacement card if discontinued
 }
 
 export interface Benefit {
