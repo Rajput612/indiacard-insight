@@ -1,16 +1,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SpendingEntry, Platform, SpendPurpose, PaymentApp } from "@/types/spending";
-import { brands, platformOptions, getCategoriesByPlatform, getSubcategoriesByCategory, getBrandsBySubcategory, popularPlatforms } from "@/data/creditCards";
-import { Plus, X, Globe, Smartphone, Store, Edit2, Copy, HelpCircle } from "lucide-react";
+import { platformOptions, getCategoriesByPlatform, getSubcategoriesByCategory, getBrandsBySubcategory } from "@/data/creditCards";
+import { Plus } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { spendingFormTooltips } from "@/constants/tooltips";
-import { SearchableSelect } from "@/components/ui/searchable-select";
+import SpendingFormHeader from "./components/SpendingFormHeader";
+import SpendingFormContent from "./components/SpendingFormContent";
+import SpendingEntryList from "./components/SpendingEntryList";
 
 type SpendingDetailStepProps = {
   entries: SpendingEntry[];
@@ -34,7 +31,6 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
   const [availableBrands, setAvailableBrands] = useState<string[]>([]);
-  const [suggestedPlatforms, setSuggestedPlatforms] = useState<string[]>([]);
   const [purpose, setPurpose] = useState<SpendPurpose>("personal");
   const [paymentApp, setPaymentApp] = useState<PaymentApp>("other");
   const [storeName, setStoreName] = useState("");
@@ -59,15 +55,6 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
     }
     setSpecificCategory("");
     setBrand("");
-    if (platform === 'app') {
-      setSuggestedPlatforms(popularPlatforms.app);
-    } else if (platform === 'website') {
-      setSuggestedPlatforms(popularPlatforms.website);
-    } else if (platform === 'store') {
-      setSuggestedPlatforms(popularPlatforms.store);
-    } else {
-      setSuggestedPlatforms([]);
-    }
   }, [category, platform]);
 
   useEffect(() => {
@@ -159,260 +146,39 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
     addEntry(newEntry);
   };
 
-  const popularPlatformOptions = platform === 'app' 
-    ? popularPlatforms.app.map(name => ({ value: name, label: name }))
-    : platform === 'website' 
-    ? popularPlatforms.website.map(name => ({ value: name, label: name }))
-    : platform === 'store' 
-    ? popularPlatforms.store.map(name => ({ value: name, label: name }))
-    : [];
-
-  const LabelWithTooltip = ({ htmlFor, children, tooltip }: { htmlFor: string; children: React.ReactNode; tooltip: string }) => (
-    <div className="flex items-center gap-2">
-      <Label htmlFor={htmlFor}>{children}</Label>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <HelpCircle className="h-4 w-4 text-gray-400" />
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{tooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-  );
-
-  const formContent = (
-    <div className="grid md:grid-cols-2 gap-4">
-      <div className="space-y-2 md:col-span-2">
-        <LabelWithTooltip htmlFor="category" tooltip={spendingFormTooltips.category}>
-          Type of Spending
-        </LabelWithTooltip>
-        <Select 
-          value={category} 
-          onValueChange={(value) => {
-            setCategory(value as "online" | "offline");
-            setChannel(value as "online" | "offline");
-          }}
-        >
-          <SelectTrigger id="category">
-            <SelectValue placeholder="Select Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="online">Online</SelectItem>
-            <SelectItem value="offline">Offline</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2 md:col-span-2">
-        <LabelWithTooltip htmlFor="platform" tooltip={spendingFormTooltips.platform}>
-          Platform
-        </LabelWithTooltip>
-        <Select 
-          value={platform} 
-          onValueChange={(value) => setPlatform(value as Platform)}
-        >
-          <SelectTrigger id="platform">
-            <SelectValue placeholder="Select Platform" />
-          </SelectTrigger>
-          <SelectContent>
-            {availablePlatforms.map(plat => (
-              <SelectItem key={plat} value={plat}>
-                <div className="flex items-center">
-                  {plat === 'app' && <Smartphone className="h-4 w-4 mr-2" />}
-                  {plat === 'website' && <Globe className="h-4 w-4 mr-2" />}
-                  {plat === 'store' && <Store className="h-4 w-4 mr-2" />}
-                  <span className="capitalize">{plat}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {category === "online" && (
-        <div className="space-y-2 md:col-span-2">
-          <LabelWithTooltip htmlFor="platform-name" tooltip={spendingFormTooltips.platformName}>
-            {platform === 'app' ? 'App Name' : 'Website Name'}
-          </LabelWithTooltip>
-          <SearchableSelect
-            options={popularPlatformOptions}
-            value={platformName}
-            onValueChange={setPlatformName}
-            placeholder={`Enter ${platform === 'app' ? 'app' : 'website'} name`}
-            allowCustomValue
-          />
-        </div>
-      )}
-
-      {category === "offline" && (
-        <div className="space-y-2 md:col-span-2">
-          <LabelWithTooltip htmlFor="store-name" tooltip={spendingFormTooltips.storeName}>
-            Store Name
-          </LabelWithTooltip>
-          <SearchableSelect
-            options={popularPlatforms.store.map(name => ({ value: name, label: name }))}
-            value={storeName}
-            onValueChange={setStoreName}
-            placeholder="Enter store name"
-            allowCustomValue
-          />
-        </div>
-      )}
-
-      <div className="space-y-2">
-        <LabelWithTooltip htmlFor="subcategory" tooltip={spendingFormTooltips.spendCategory}>
-          Category
-        </LabelWithTooltip>
-        <Select 
-          value={subcategory} 
-          onValueChange={setSubcategory}
-        >
-          <SelectTrigger id="subcategory">
-            <SelectValue placeholder="Select Category" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableCategories.map(cat => (
-              <SelectItem key={cat} value={cat}>
-                {cat.replace(/([A-Z])/g, ' $1').trim()}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="specific-category">Subcategory</Label>
-        <Select 
-          value={specificCategory} 
-          onValueChange={setSpecificCategory}
-          disabled={availableSubcategories.length === 0}
-        >
-          <SelectTrigger id="specific-category">
-            <SelectValue placeholder="Select Subcategory" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableSubcategories.map(subcat => (
-              <SelectItem key={subcat} value={subcat}>
-                {subcat}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="brand">Brand (Optional)</Label>
-        <Select 
-          value={brand} 
-          onValueChange={setBrand}
-          disabled={availableBrands.length === 0}
-        >
-          <SelectTrigger id="brand">
-            <SelectValue placeholder="Select Brand" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableBrands.map(brandName => (
-              <SelectItem key={brandName} value={brandName}>
-                {brandName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <LabelWithTooltip htmlFor="amount" tooltip={spendingFormTooltips.amount}>
-          Amount (₹)
-        </LabelWithTooltip>
-        <Input
-          id="amount"
-          type="number"
-          placeholder="Enter amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <LabelWithTooltip htmlFor="frequency" tooltip={spendingFormTooltips.frequency}>
-          Frequency
-        </LabelWithTooltip>
-        <Select 
-          value={frequency} 
-          onValueChange={(value) => setFrequency(value as any)}
-        >
-          <SelectTrigger id="frequency">
-            <SelectValue placeholder="Select Frequency" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="daily">Daily</SelectItem>
-            <SelectItem value="weekly">Weekly</SelectItem>
-            <SelectItem value="monthly">Monthly</SelectItem>
-            <SelectItem value="quarterly">Quarterly</SelectItem>
-            <SelectItem value="yearly">Yearly</SelectItem>
-            <SelectItem value="one-time">One-time</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <LabelWithTooltip htmlFor="payment-app" tooltip={spendingFormTooltips.paymentApp}>
-          Payment App
-        </LabelWithTooltip>
-        <Select 
-          value={paymentApp} 
-          onValueChange={(value) => setPaymentApp(value as PaymentApp)}
-        >
-          <SelectTrigger id="payment-app">
-            <SelectValue placeholder="Select Payment App" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="googlepay">Google Pay</SelectItem>
-            <SelectItem value="amazonpay">Amazon Pay</SelectItem>
-            <SelectItem value="phonepe">PhonePe</SelectItem>
-            <SelectItem value="paytm">Paytm</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <LabelWithTooltip htmlFor="purpose" tooltip={spendingFormTooltips.purpose}>
-          Purpose
-        </LabelWithTooltip>
-        <Select 
-          value={purpose} 
-          onValueChange={(value) => setPurpose(value as SpendPurpose)}
-        >
-          <SelectTrigger id="purpose">
-            <SelectValue placeholder="Select Purpose" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="personal">Personal</SelectItem>
-            <SelectItem value="business">Business</SelectItem>
-            <SelectItem value="gift">Gift</SelectItem>
-            <SelectItem value="travel">Travel</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-6 animate-slide-up">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-navy mb-2">Add Your Spending Details</h2>
-        <p className="text-gray-600">
-          Add each spending category individually. You can add as many as you like to see personalized recommendations.
-        </p>
-      </div>
+      <SpendingFormHeader />
 
       <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-        {formContent}
+        <SpendingFormContent
+          category={category}
+          platform={platform}
+          platformName={platformName}
+          subcategory={subcategory}
+          specificCategory={specificCategory}
+          brand={brand}
+          amount={amount}
+          frequency={frequency}
+          purpose={purpose}
+          paymentApp={paymentApp}
+          storeName={storeName}
+          availablePlatforms={availablePlatforms}
+          availableCategories={availableCategories}
+          availableSubcategories={availableSubcategories}
+          availableBrands={availableBrands}
+          onCategoryChange={setCategory}
+          onPlatformChange={setPlatform}
+          onPlatformNameChange={setPlatformName}
+          onSubcategoryChange={setSubcategory}
+          onSpecificCategoryChange={setSpecificCategory}
+          onBrandChange={setBrand}
+          onAmountChange={setAmount}
+          onFrequencyChange={setFrequency}
+          onPurposeChange={setPurpose}
+          onPaymentAppChange={setPaymentApp}
+          onStoreNameChange={setStoreName}
+        />
         <Button 
           onClick={handleAddEntry} 
           className="mt-4 bg-navy hover:bg-navy/90 text-white"
@@ -424,72 +190,12 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
 
       <div className="mt-6">
         <h3 className="font-medium text-navy mb-2">Your Spending Entries</h3>
-        
-        {entries.length === 0 ? (
-          <div className="text-center p-6 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-            <p className="text-gray-500">No spending entries added yet. Add your first one above.</p>
-          </div>
-        ) : (
-          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-            {entries.map((entry) => (
-              <div 
-                key={entry.id} 
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-navy/30 transition-colors"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-navy capitalize">
-                      {entry.subcategory.replace(/([A-Z])/g, ' $1').trim()}
-                    </span>
-                    {entry.specificCategory && (
-                      <span className="text-xs text-gray-500">({entry.specificCategory})</span>
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    <span className="capitalize">{entry.category}</span>
-                    {entry.platform && ` • ${entry.platform === 'app' ? 'App' : entry.platform === 'website' ? 'Website' : entry.platform === 'store' ? 'Store' : 'Platform'}`}
-                    {entry.platformName && `: ${entry.platformName}`}
-                    {entry.brand && ` • ${entry.brand}`}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-right">
-                    <span className="font-medium">₹{entry.amount.toLocaleString()}</span>
-                    <div className="text-xs text-gray-500 capitalize">
-                      {entry.frequency}
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => handleDuplicate(entry)}
-                      className="text-gray-500 hover:text-navy"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => handleEdit(entry)}
-                      className="text-gray-500 hover:text-navy"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => removeEntry(entry.id)}
-                      className="text-gray-500 hover:text-red-500"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <SpendingEntryList 
+          entries={entries}
+          onEdit={handleEdit}
+          onDuplicate={handleDuplicate}
+          onRemove={removeEntry}
+        />
       </div>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -497,7 +203,34 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
           <DialogHeader>
             <DialogTitle>Edit Spending Entry</DialogTitle>
           </DialogHeader>
-          {formContent}
+          <SpendingFormContent
+            category={category}
+            platform={platform}
+            platformName={platformName}
+            subcategory={subcategory}
+            specificCategory={specificCategory}
+            brand={brand}
+            amount={amount}
+            frequency={frequency}
+            purpose={purpose}
+            paymentApp={paymentApp}
+            storeName={storeName}
+            availablePlatforms={availablePlatforms}
+            availableCategories={availableCategories}
+            availableSubcategories={availableSubcategories}
+            availableBrands={availableBrands}
+            onCategoryChange={setCategory}
+            onPlatformChange={setPlatform}
+            onPlatformNameChange={setPlatformName}
+            onSubcategoryChange={setSubcategory}
+            onSpecificCategoryChange={setSpecificCategory}
+            onBrandChange={setBrand}
+            onAmountChange={setAmount}
+            onFrequencyChange={setFrequency}
+            onPurposeChange={setPurpose}
+            onPaymentAppChange={setPaymentApp}
+            onStoreNameChange={setStoreName}
+          />
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               Cancel
