@@ -1,4 +1,3 @@
-
 // Credit Card types
 export interface CreditCard {
   id: string;
@@ -56,21 +55,23 @@ export interface Category {
 }
 
 // Spending tracking types
-export type Platform = "app" | "website" | "store" | "other";
+export type Platform = "app" | "website" | "store" | "other" | "cred" | "phonepe" | "amazon" | "nobroker";
+export type PaymentApp = "googlepay" | "amazonpay" | "phonepe" | "paytm" | "other";
+export type SpendPurpose = "personal" | "business" | "gift" | "travel" | "other";
 
 export interface SpendingEntry {
   id?: string;
   amount: number;
   category: string;
   subcategory?: string;
-  specificCategory?: string; // Added this property
+  specificCategory?: string;
   brand?: string;
   platform?: Platform;
-  platformName?: string; // Added this property
+  platformName?: string;
   channel?: "online" | "offline";
-  payment_app?: string;
+  payment_app?: PaymentApp;
   store_name?: string;
-  purpose?: "personal" | "business";
+  purpose?: SpendPurpose;
   frequency?: "daily" | "weekly" | "monthly" | "quarterly" | "yearly" | "one-time";
 }
 

@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { CreditCard, SpendingEntry, CardRecommendationResult, RewardRule } from '@/types/spending';
 
@@ -116,13 +115,13 @@ function getCardCombinations(cards: CreditCard[], maxSize: number): CreditCard[]
   return results;
 }
 
-// Main recommendation function
+// Main recommendation function with limit
 export function evaluateCardCombinations(
   spends: SpendingEntry[],
   availableCards: CreditCard[],
   maxGroupSize = 3
 ): CardRecommendationResult[] {
-  const combinations = getCardCombinations(availableCards, maxGroupSize);
+  const combinations = getCardCombinations(availableCards, Math.min(maxGroupSize, 10));
   const spendsWithIds = assignSpendIds(spends);
 
   const evaluatedGroups = combinations.map((group): CardRecommendationResult => {
@@ -160,7 +159,8 @@ export function evaluateCardCombinations(
 
   return evaluatedGroups
     .filter(g => g.totalGroupCashback > 0)
-    .sort((a, b) => b.totalGroupCashback - a.totalGroupCashback);
+    .sort((a, b) => b.totalGroupCashback - a.totalGroupCashback)
+    .slice(0, 10); // Limit to top 10 recommendations
 }
 
 // Format function for UI display

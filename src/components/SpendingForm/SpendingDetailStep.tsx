@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SpendingEntry, Platform } from "@/types/spending";
+import { SpendingEntry, Platform, SpendPurpose, PaymentApp } from "@/types/spending";
 import { brands, platformOptions, getCategoriesByPlatform, getSubcategoriesByCategory, getBrandsBySubcategory, popularPlatforms } from "@/data/creditCards";
 import { Plus, X, Globe, Smartphone, Store, Edit2, Copy } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
@@ -18,41 +17,27 @@ type SpendingDetailStepProps = {
 };
 
 const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: SpendingDetailStepProps) => {
-  // Level 1: Online/Offline
   const [category, setCategory] = useState<"online" | "offline">("online");
-  
-  // Level 2: Platform (App/Website/Store)
   const [platform, setPlatform] = useState<Platform>("website");
   const [platformName, setPlatformName] = useState("");
-  
-  // Level 3: Category
   const [subcategory, setSubcategory] = useState("");
-  
-  // Level 4: Subcategory
   const [specificCategory, setSpecificCategory] = useState("");
-  
-  // Level 5: Brand
   const [brand, setBrand] = useState("");
-  
-  // Amount and frequency
   const [amount, setAmount] = useState("");
   const [frequency, setFrequency] = useState<"monthly" | "yearly" | "one-time" | "daily" | "weekly" | "quarterly">("monthly");
-
-  // Edit mode
   const [editingEntry, setEditingEntry] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-
-  // Available options based on selections
   const [availablePlatforms, setAvailablePlatforms] = useState<Platform[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
   const [availableBrands, setAvailableBrands] = useState<string[]>([]);
   const [suggestedPlatforms, setSuggestedPlatforms] = useState<string[]>([]);
+  const [purpose, setPurpose] = useState<SpendPurpose>("personal");
+  const [paymentApp, setPaymentApp] = useState<PaymentApp>("other");
+  const [storeName, setStoreName] = useState("");
 
-  // Update available platforms when category changes
   useEffect(() => {
     setAvailablePlatforms(platformOptions[category]);
-    // Reset subsequent values
     setPlatform(platformOptions[category][0]);
     setPlatformName("");
     setSubcategory("");
@@ -60,12 +45,9 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
     setBrand("");
   }, [category]);
 
-  // Update available categories when platform changes
   useEffect(() => {
     const categories = getCategoriesByPlatform(category, platform);
     setAvailableCategories(categories);
-    
-    // Reset subsequent values
     if (categories.length > 0) {
       setSubcategory(categories[0]);
     } else {
@@ -73,8 +55,6 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
     }
     setSpecificCategory("");
     setBrand("");
-
-    // Update suggested platforms based on platform type
     if (platform === 'app') {
       setSuggestedPlatforms(popularPlatforms.app);
     } else if (platform === 'website') {
@@ -86,19 +66,16 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
     }
   }, [category, platform]);
 
-  // Update available subcategories when category changes
   useEffect(() => {
     if (subcategory) {
       const subcategories = getSubcategoriesByCategory(subcategory);
       setAvailableSubcategories(subcategories);
-      // Reset brand
       setBrand("");
     } else {
       setAvailableSubcategories([]);
     }
   }, [subcategory]);
 
-  // Update available brands when subcategory changes
   useEffect(() => {
     if (subcategory && specificCategory) {
       const availableBrands = getBrandsBySubcategory(subcategory, specificCategory);
@@ -118,6 +95,9 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
     setAmount("");
     setFrequency("monthly");
     setEditingEntry(null);
+    setPurpose("personal");
+    setPaymentApp("other");
+    setStoreName("");
   };
 
   const handleAddEntry = () => {
@@ -125,14 +105,18 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
 
     const newEntry: SpendingEntry = {
       id: editingEntry || uuidv4(),
-      category: category,
-      subcategory: subcategory,
+      amount: parseFloat(amount),
+      category,
+      subcategory,
       specificCategory: specificCategory || undefined,
       brand: brand || undefined,
-      platform: platform,
+      platform,
       platformName: platformName || undefined,
-      amount: parseFloat(amount),
-      frequency: frequency as any,
+      channel,
+      payment_app: paymentApp,
+      store_name: storeName || undefined,
+      purpose,
+      frequency,
     };
 
     if (editingEntry) {
@@ -155,6 +139,9 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
     setBrand(entry.brand || "");
     setAmount(entry.amount.toString());
     setFrequency(entry.frequency || "monthly");
+    setPurpose(entry.purpose || "personal");
+    setPaymentApp(entry.payment_app || "other");
+    setStoreName(entry.store_name || "");
     setIsEditDialogOpen(true);
   };
 
@@ -168,7 +155,6 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
 
   const formContent = (
     <div className="grid md:grid-cols-2 gap-4">
-      {/* Level 1: Online/Offline */}
       <div className="space-y-2 md:col-span-2">
         <Label htmlFor="category">Type of Spending</Label>
         <Select 
@@ -185,7 +171,6 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
         </Select>
       </div>
 
-      {/* Level 2: Platform */}
       <div className="space-y-2 md:col-span-2">
         <Label htmlFor="platform">Platform</Label>
         <Select 
@@ -210,7 +195,6 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
         </Select>
       </div>
 
-      {/* Platform Name with Suggestions */}
       <div className="space-y-2 md:col-span-2">
         <Label htmlFor="platform-name">
           {platform === 'app' ? 'App Name' : 
@@ -242,7 +226,6 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
         </div>
       </div>
 
-      {/* Rest of the form fields */}
       <div className="space-y-2">
         <Label htmlFor="subcategory">Category</Label>
         <Select 
@@ -282,7 +265,6 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
         </Select>
       </div>
 
-      {/* Brand Selection */}
       <div className="space-y-2">
         <Label htmlFor="brand">Brand (Optional)</Label>
         <Select 
@@ -333,6 +315,54 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
           </SelectContent>
         </Select>
       </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="payment-app">Payment App</Label>
+        <Select 
+          value={paymentApp} 
+          onValueChange={(value) => setPaymentApp(value as PaymentApp)}
+        >
+          <SelectTrigger id="payment-app">
+            <SelectValue placeholder="Select Payment App" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="googlepay">Google Pay</SelectItem>
+            <SelectItem value="amazonpay">Amazon Pay</SelectItem>
+            <SelectItem value="phonepe">PhonePe</SelectItem>
+            <SelectItem value="paytm">Paytm</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="purpose">Purpose</Label>
+        <Select 
+          value={purpose} 
+          onValueChange={(value) => setPurpose(value as SpendPurpose)}
+        >
+          <SelectTrigger id="purpose">
+            <SelectValue placeholder="Select Purpose" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="personal">Personal</SelectItem>
+            <SelectItem value="business">Business</SelectItem>
+            <SelectItem value="gift">Gift</SelectItem>
+            <SelectItem value="travel">Travel</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="store-name">Store Name (Optional)</Label>
+        <Input
+          id="store-name"
+          placeholder="Enter store name"
+          value={storeName}
+          onChange={(e) => setStoreName(e.target.value)}
+        />
+      </div>
     </div>
   );
 
@@ -356,7 +386,6 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
         </Button>
       </div>
 
-      {/* Spending Entries List */}
       <div className="mt-6">
         <h3 className="font-medium text-navy mb-2">Your Spending Entries</h3>
         
@@ -427,7 +456,6 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
         )}
       </div>
 
-      {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
