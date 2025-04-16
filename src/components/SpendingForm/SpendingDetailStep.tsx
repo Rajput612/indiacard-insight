@@ -35,6 +35,7 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
   const [purpose, setPurpose] = useState<SpendPurpose>("personal");
   const [paymentApp, setPaymentApp] = useState<PaymentApp>("other");
   const [storeName, setStoreName] = useState("");
+  const [channel, setChannel] = useState<"online" | "offline">("online");
 
   useEffect(() => {
     setAvailablePlatforms(platformOptions[category]);
@@ -98,6 +99,7 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
     setPurpose("personal");
     setPaymentApp("other");
     setStoreName("");
+    setChannel("online");
   };
 
   const handleAddEntry = () => {
@@ -142,6 +144,7 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
     setPurpose(entry.purpose || "personal");
     setPaymentApp(entry.payment_app || "other");
     setStoreName(entry.store_name || "");
+    setChannel(entry.channel || "online");
     setIsEditDialogOpen(true);
   };
 
@@ -159,7 +162,10 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
         <Label htmlFor="category">Type of Spending</Label>
         <Select 
           value={category} 
-          onValueChange={(value) => setCategory(value as "online" | "offline")}
+          onValueChange={(value) => {
+            setCategory(value as "online" | "offline");
+            setChannel(value as "online" | "offline");
+          }}
         >
           <SelectTrigger id="category">
             <SelectValue placeholder="Select Category" />
