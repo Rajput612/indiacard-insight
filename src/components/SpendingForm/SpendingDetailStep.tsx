@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -125,7 +126,7 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
     const newEntry: SpendingEntry = {
       id: editingEntry || uuidv4(),
       category: category,
-      subcategory: subcategory as any,
+      subcategory: subcategory,
       specificCategory: specificCategory || undefined,
       brand: brand || undefined,
       platform: platform,
@@ -146,14 +147,14 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
 
   const handleEdit = (entry: SpendingEntry) => {
     setEditingEntry(entry.id);
-    setCategory(entry.category);
+    setCategory(entry.category as "online" | "offline");
     setPlatform(entry.platform || "website");
     setPlatformName(entry.platformName || "");
-    setSubcategory(entry.subcategory);
+    setSubcategory(entry.subcategory || "");
     setSpecificCategory(entry.specificCategory || "");
     setBrand(entry.brand || "");
     setAmount(entry.amount.toString());
-    setFrequency(entry.frequency);
+    setFrequency(entry.frequency || "monthly");
     setIsEditDialogOpen(true);
   };
 

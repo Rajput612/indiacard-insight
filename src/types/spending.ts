@@ -1,3 +1,4 @@
+
 // Credit Card types
 export interface CreditCard {
   id: string;
@@ -62,8 +63,10 @@ export interface SpendingEntry {
   amount: number;
   category: string;
   subcategory?: string;
+  specificCategory?: string; // Added this property
   brand?: string;
-  platform?: string;
+  platform?: Platform;
+  platformName?: string; // Added this property
   channel?: "online" | "offline";
   payment_app?: string;
   store_name?: string;

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { SpendingEntry } from "@/types/spending";
@@ -62,9 +63,7 @@ const SpendingFormContainer = () => {
     const timer = setTimeout(() => {
       const recommendedCards = findBestCreditCards({
         entries: spendingEntries,
-        preferences: cardPreferences,
-        onlinePercentage: 0, // This will be calculated inside findBestCreditCards
-        categories: {} // This will be calculated inside findBestCreditCards
+        preferences: cardPreferences
       });
       
       setRecommendations(recommendedCards);
