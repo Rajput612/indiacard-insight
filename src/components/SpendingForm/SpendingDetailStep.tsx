@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { SpendingEntry, Platform, SpendPurpose, PaymentApp } from "@/types/spending";
@@ -35,6 +36,27 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
   const [paymentApp, setPaymentApp] = useState<PaymentApp>("other");
   const [storeName, setStoreName] = useState("");
   const [channel, setChannel] = useState<"online" | "offline">("online");
+
+  // Type-safe handlers
+  const handleFrequencyChange = (value: string) => {
+    setFrequency(value as "monthly" | "yearly" | "one-time" | "daily" | "weekly" | "quarterly");
+  };
+
+  const handlePurposeChange = (value: string) => {
+    setPurpose(value as SpendPurpose);
+  };
+
+  const handlePaymentAppChange = (value: string) => {
+    setPaymentApp(value as PaymentApp);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setCategory(value as "online" | "offline");
+  };
+
+  const handlePlatformChange = (value: string) => {
+    setPlatform(value as Platform);
+  };
 
   useEffect(() => {
     setAvailablePlatforms(platformOptions[category]);
@@ -167,16 +189,16 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
           availableCategories={availableCategories}
           availableSubcategories={availableSubcategories}
           availableBrands={availableBrands}
-          onCategoryChange={setCategory}
-          onPlatformChange={setPlatform}
+          onCategoryChange={handleCategoryChange}
+          onPlatformChange={handlePlatformChange}
           onPlatformNameChange={setPlatformName}
           onSubcategoryChange={setSubcategory}
           onSpecificCategoryChange={setSpecificCategory}
           onBrandChange={setBrand}
           onAmountChange={setAmount}
-          onFrequencyChange={setFrequency}
-          onPurposeChange={setPurpose}
-          onPaymentAppChange={setPaymentApp}
+          onFrequencyChange={handleFrequencyChange}
+          onPurposeChange={handlePurposeChange}
+          onPaymentAppChange={handlePaymentAppChange}
           onStoreNameChange={setStoreName}
         />
         <Button 
@@ -219,16 +241,16 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
             availableCategories={availableCategories}
             availableSubcategories={availableSubcategories}
             availableBrands={availableBrands}
-            onCategoryChange={setCategory}
-            onPlatformChange={setPlatform}
+            onCategoryChange={handleCategoryChange}
+            onPlatformChange={handlePlatformChange}
             onPlatformNameChange={setPlatformName}
             onSubcategoryChange={setSubcategory}
             onSpecificCategoryChange={setSpecificCategory}
             onBrandChange={setBrand}
             onAmountChange={setAmount}
-            onFrequencyChange={setFrequency}
-            onPurposeChange={setPurpose}
-            onPaymentAppChange={setPaymentApp}
+            onFrequencyChange={handleFrequencyChange}
+            onPurposeChange={handlePurposeChange}
+            onPaymentAppChange={handlePaymentAppChange}
             onStoreNameChange={setStoreName}
           />
           <div className="flex justify-end gap-2 mt-4">
