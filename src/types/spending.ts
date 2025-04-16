@@ -8,16 +8,39 @@ export interface CreditCard {
   interestRate: number;
   minIncome: number;
   creditScore: number;
+  defaultRate?: number;
+  defaultRewardType?: "cashback" | "points";
+  pointValue?: number;
   benefits: Benefit[];
   categories: Category[];
+  rules?: RewardRule[];
+  milestone?: Milestone;
   imageUrl: string;
   applyUrl: string;
   type?: string;
   network?: string;
-  status: 0 | 1 | 2; // 0: inactive, 1: active, 2: discontinued
-  statusMessage?: string; // Custom message for status
-  discontinuedDate?: string; // Date when card was discontinued
-  replacementCardId?: string; // ID of replacement card if discontinued
+  status: 0 | 1 | 2;
+  statusMessage?: string;
+  discontinuedDate?: string;
+  replacementCardId?: string;
+}
+
+export interface RewardRule {
+  category?: string;
+  subcategory?: string;
+  brand?: string;
+  platform?: string;
+  payment_app?: string;
+  channel?: "online" | "offline";
+  rate: number;
+  rewardType: "cashback" | "points";
+  cap?: number;
+  categoryCap?: number;
+}
+
+export interface Milestone {
+  threshold: number;
+  bonus: number;
 }
 
 export interface Benefit {
@@ -35,15 +58,17 @@ export interface Category {
 export type Platform = "app" | "website" | "store" | "other";
 
 export interface SpendingEntry {
-  id: string;
-  category: "online" | "offline";
-  subcategory: string;
-  specificCategory?: string;
-  brand?: string;
-  platform: Platform;
-  platformName?: string;
+  id?: string;
   amount: number;
-  frequency: "daily" | "weekly" | "monthly" | "quarterly" | "yearly" | "one-time";
+  category: string;
+  subcategory?: string;
+  brand?: string;
+  platform?: string;
+  channel?: "online" | "offline";
+  payment_app?: string;
+  store_name?: string;
+  purpose?: "personal" | "business";
+  frequency?: "daily" | "weekly" | "monthly" | "quarterly" | "yearly" | "one-time";
 }
 
 // Card Preferences type
@@ -52,4 +77,15 @@ export interface CardPreferences {
   excludeCards: string[];
   ownedCards: string[];
   desiredCardCount: number;
+}
+
+export interface CardRecommendationResult {
+  group: string[];
+  totalGroupCashback: number;
+  totalGroupPoints: number;
+  breakdown: {
+    card: string;
+    cashback: number;
+    rewardPoints: number;
+  }[];
 }
