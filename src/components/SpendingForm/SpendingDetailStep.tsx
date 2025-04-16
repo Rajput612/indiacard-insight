@@ -5,9 +5,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SpendingEntry, Platform, SpendPurpose, PaymentApp } from "@/types/spending";
 import { brands, platformOptions, getCategoriesByPlatform, getSubcategoriesByCategory, getBrandsBySubcategory, popularPlatforms } from "@/data/creditCards";
-import { Plus, X, Globe, Smartphone, Store, Edit2, Copy } from "lucide-react";
+import { Plus, X, Globe, Smartphone, Store, Edit2, Copy, HelpCircle } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { spendingFormTooltips } from "@/constants/tooltips";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 type SpendingDetailStepProps = {
   entries: SpendingEntry[];
@@ -156,10 +159,36 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
     addEntry(newEntry);
   };
 
+  const popularPlatformOptions = platform === 'app' 
+    ? popularPlatforms.app.map(name => ({ value: name, label: name }))
+    : platform === 'website' 
+    ? popularPlatforms.website.map(name => ({ value: name, label: name }))
+    : platform === 'store' 
+    ? popularPlatforms.store.map(name => ({ value: name, label: name }))
+    : [];
+
+  const LabelWithTooltip = ({ htmlFor, children, tooltip }: { htmlFor: string; children: React.ReactNode; tooltip: string }) => (
+    <div className="flex items-center gap-2">
+      <Label htmlFor={htmlFor}>{children}</Label>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <HelpCircle className="h-4 w-4 text-gray-400" />
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{tooltip}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+
   const formContent = (
     <div className="grid md:grid-cols-2 gap-4">
       <div className="space-y-2 md:col-span-2">
-        <Label htmlFor="category">Type of Spending</Label>
+        <LabelWithTooltip htmlFor="category" tooltip={spendingFormTooltips.category}>
+          Type of Spending
+        </LabelWithTooltip>
         <Select 
           value={category} 
           onValueChange={(value) => {
@@ -178,7 +207,9 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
       </div>
 
       <div className="space-y-2 md:col-span-2">
-        <Label htmlFor="platform">Platform</Label>
+        <LabelWithTooltip htmlFor="platform" tooltip={spendingFormTooltips.platform}>
+          Platform
+        </LabelWithTooltip>
         <Select 
           value={platform} 
           onValueChange={(value) => setPlatform(value as Platform)}
@@ -201,39 +232,40 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
         </Select>
       </div>
 
-      <div className="space-y-2 md:col-span-2">
-        <Label htmlFor="platform-name">
-          {platform === 'app' ? 'App Name' : 
-           platform === 'website' ? 'Website Name' : 
-           platform === 'store' ? 'Store Name' : 'Name'} (Optional)
-        </Label>
-        <div className="space-y-2">
-          <Input
-            id="platform-name"
-            placeholder={`Enter ${platform === 'app' ? 'app' : platform === 'website' ? 'website' : platform === 'store' ? 'store' : ''} name`}
+      {category === "online" && (
+        <div className="space-y-2 md:col-span-2">
+          <LabelWithTooltip htmlFor="platform-name" tooltip={spendingFormTooltips.platformName}>
+            {platform === 'app' ? 'App Name' : 'Website Name'}
+          </LabelWithTooltip>
+          <SearchableSelect
+            options={popularPlatformOptions}
             value={platformName}
-            onChange={(e) => setPlatformName(e.target.value)}
+            onValueChange={setPlatformName}
+            placeholder={`Enter ${platform === 'app' ? 'app' : 'website'} name`}
+            allowCustomValue
           />
-          {suggestedPlatforms.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {suggestedPlatforms.map((suggestion) => (
-                <Button
-                  key={suggestion}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPlatformName(suggestion)}
-                  className="text-xs"
-                >
-                  {suggestion}
-                </Button>
-              ))}
-            </div>
-          )}
         </div>
-      </div>
+      )}
+
+      {category === "offline" && (
+        <div className="space-y-2 md:col-span-2">
+          <LabelWithTooltip htmlFor="store-name" tooltip={spendingFormTooltips.storeName}>
+            Store Name
+          </LabelWithTooltip>
+          <SearchableSelect
+            options={popularPlatforms.store.map(name => ({ value: name, label: name }))}
+            value={storeName}
+            onValueChange={setStoreName}
+            placeholder="Enter store name"
+            allowCustomValue
+          />
+        </div>
+      )}
 
       <div className="space-y-2">
-        <Label htmlFor="subcategory">Category</Label>
+        <LabelWithTooltip htmlFor="subcategory" tooltip={spendingFormTooltips.spendCategory}>
+          Category
+        </LabelWithTooltip>
         <Select 
           value={subcategory} 
           onValueChange={setSubcategory}
@@ -292,7 +324,9 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="amount">Amount (₹)</Label>
+        <LabelWithTooltip htmlFor="amount" tooltip={spendingFormTooltips.amount}>
+          Amount (₹)
+        </LabelWithTooltip>
         <Input
           id="amount"
           type="number"
@@ -303,7 +337,9 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="frequency">Frequency</Label>
+        <LabelWithTooltip htmlFor="frequency" tooltip={spendingFormTooltips.frequency}>
+          Frequency
+        </LabelWithTooltip>
         <Select 
           value={frequency} 
           onValueChange={(value) => setFrequency(value as any)}
@@ -323,7 +359,9 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="payment-app">Payment App</Label>
+        <LabelWithTooltip htmlFor="payment-app" tooltip={spendingFormTooltips.paymentApp}>
+          Payment App
+        </LabelWithTooltip>
         <Select 
           value={paymentApp} 
           onValueChange={(value) => setPaymentApp(value as PaymentApp)}
@@ -342,7 +380,9 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="purpose">Purpose</Label>
+        <LabelWithTooltip htmlFor="purpose" tooltip={spendingFormTooltips.purpose}>
+          Purpose
+        </LabelWithTooltip>
         <Select 
           value={purpose} 
           onValueChange={(value) => setPurpose(value as SpendPurpose)}
@@ -358,16 +398,6 @@ const SpendingDetailStep = ({ entries, addEntry, removeEntry, updateEntry }: Spe
             <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="store-name">Store Name (Optional)</Label>
-        <Input
-          id="store-name"
-          placeholder="Enter store name"
-          value={storeName}
-          onChange={(e) => setStoreName(e.target.value)}
-        />
       </div>
     </div>
   );
