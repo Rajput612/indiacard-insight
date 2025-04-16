@@ -1,11 +1,12 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { CreditCard, SpendingEntry, CardRecommendationResult, RewardRule } from '@/types/spending';
 
 // Utility: Assign unique IDs to spends if not present
 function assignSpendIds(spends: SpendingEntry[]): SpendingEntry[] {
   return spends.map((spend) => ({
-    id: spend.id || uuidv4(),
-    ...spend
+    ...spend,
+    id: spend.id || uuidv4()
   }));
 }
 
@@ -24,6 +25,11 @@ function calculateCardCashback(card: CreditCard, spends: SpendingEntry[]) {
   let detailedBreakdown: (SpendingEntry & { cashback: number; points: number })[] = [];
   let usedSpendIds = new Set<string>();
   let categoryWiseCapTracker: Record<string, number> = {};
+
+  // Safety check - if spends is undefined or empty, return empty result
+  if (!spends || spends.length === 0) {
+    return { totalCashback: 0, rewardPoints: 0, detailedBreakdown: [], usedSpendIds: new Set<string>() };
+  }
 
   for (const spend of spends) {
     let applicableRule: RewardRule | null = null;
@@ -102,6 +108,11 @@ function calculateCardCashback(card: CreditCard, spends: SpendingEntry[]) {
 function getCardCombinations(cards: CreditCard[], maxSize: number): CreditCard[][] {
   const results: CreditCard[][] = [];
   
+  // Safety check - if cards is undefined or empty, return empty result
+  if (!cards || cards.length === 0) {
+    return [];
+  }
+  
   function combine(current: CreditCard[], remaining: CreditCard[]) {
     if (current.length > 0 && current.length <= maxSize) {
       results.push([...current]);
@@ -121,6 +132,15 @@ export function evaluateCardCombinations(
   availableCards: CreditCard[],
   maxGroupSize = 3
 ): CardRecommendationResult[] {
+  // Safety checks for undefined or empty inputs
+  if (!spends || spends.length === 0) {
+    return [];
+  }
+  
+  if (!availableCards || availableCards.length === 0) {
+    return [];
+  }
+  
   const combinations = getCardCombinations(availableCards, Math.min(maxGroupSize, 10));
   const spendsWithIds = assignSpendIds(spends);
 
@@ -146,7 +166,10 @@ export function evaluateCardCombinations(
         rewardPoints: result.rewardPoints
       });
 
-      result.usedSpendIds.forEach(id => allocatedSpendIds.add(id));
+      // Safety check - make sure usedSpendIds exists before iterating
+      if (result.usedSpendIds) {
+        result.usedSpendIds.forEach(id => allocatedSpendIds.add(id));
+      }
     }
 
     return {
@@ -165,6 +188,11 @@ export function evaluateCardCombinations(
 
 // Format function for UI display
 export function formatRecommendationSummary(result: CardRecommendationResult): string {
+  // Safety check for undefined input
+  if (!result) {
+    return "No recommendation available";
+  }
+  
   const cards = result.group.join(", ");
   const cashback = result.totalGroupCashback.toFixed(2);
   const points = result.totalGroupPoints.toFixed(2);

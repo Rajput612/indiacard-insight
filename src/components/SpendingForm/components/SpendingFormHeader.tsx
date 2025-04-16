@@ -8,6 +8,9 @@ const SpendingFormHeader = () => {
       <p className="text-gray-600">
         Add each spending category individually. You can add as many as you like to see personalized recommendations.
       </p>
+      <p className="text-sm text-gray-500 mt-2">
+        All fields marked with tooltips provide additional information to help you fill them accurately.
+      </p>
     </div>
   );
 };
