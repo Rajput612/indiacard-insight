@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -66,13 +65,29 @@ const SpendingFormContent = ({
   onPaymentAppChange,
   onStoreNameChange,
 }: SpendingFormContentProps) => {
-  const platformOptions = platform === 'app' 
-    ? popularPlatforms.app.map(name => ({ value: name, label: name }))
-    : platform === 'website' 
-    ? popularPlatforms.website.map(name => ({ value: name, label: name }))
-    : platform === 'store' 
-    ? popularPlatforms.store.map(name => ({ value: name, label: name }))
-    : [];
+  const [showCustomPlatform, setShowCustomPlatform] = React.useState(false);
+
+  // Get platform options based on selected platform type
+  const getPlatformOptions = () => {
+    if (platform === 'app') {
+      return popularPlatforms.app;
+    } else if (platform === 'website') {
+      return popularPlatforms.website;
+    } else if (platform === 'store') {
+      return popularPlatforms.store;
+    }
+    return [];
+  };
+
+  const handlePlatformNameChange = (value: string) => {
+    if (value === 'other') {
+      setShowCustomPlatform(true);
+      onPlatformNameChange('');
+    } else {
+      setShowCustomPlatform(false);
+      onPlatformNameChange(value);
+    }
+  };
 
   return (
     <div className="grid md:grid-cols-2 gap-4">
@@ -114,35 +129,39 @@ const SpendingFormContent = ({
         </Select>
       </div>
 
-      {category === "online" && (
-        <div className="space-y-2 md:col-span-2">
-          <LabelWithTooltip htmlFor="platform-name" tooltip={spendingFormTooltips.platformName}>
-            {platform === 'app' ? 'App Name' : 'Website Name'}
-          </LabelWithTooltip>
-          <SearchableSelect
-            options={platformOptions}
-            value={platformName}
-            onValueChange={onPlatformNameChange}
-            placeholder={`Enter ${platform === 'app' ? 'app' : 'website'} name`}
-            allowCustomValue
-          />
-        </div>
-      )}
+      {/* Platform/Store Name Selection */}
+      <div className="space-y-2 md:col-span-2">
+        <LabelWithTooltip 
+          htmlFor="platform-name" 
+          tooltip={platform === 'store' ? spendingFormTooltips.storeName : spendingFormTooltips.platformName}
+        >
+          {platform === 'app' ? 'App Name' : 
+           platform === 'website' ? 'Website Name' : 
+           platform === 'store' ? 'Store Name' : 'Name'}
+        </LabelWithTooltip>
+        
+        <Select value={platformName || 'other'} onValueChange={handlePlatformNameChange}>
+          <SelectTrigger>
+            <SelectValue placeholder={`Select ${platform === 'app' ? 'App' : platform === 'website' ? 'Website' : 'Store'}`} />
+          </SelectTrigger>
+          <SelectContent>
+            {getPlatformOptions().map(name => (
+              <SelectItem key={name} value={name}>{name}</SelectItem>
+            ))}
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
 
-      {category === "offline" && (
-        <div className="space-y-2 md:col-span-2">
-          <LabelWithTooltip htmlFor="store-name" tooltip={spendingFormTooltips.storeName}>
-            Store Name
-          </LabelWithTooltip>
-          <SearchableSelect
-            options={popularPlatforms.store.map(name => ({ value: name, label: name }))}
-            value={storeName}
-            onValueChange={onStoreNameChange}
-            placeholder="Enter store name"
-            allowCustomValue
-          />
-        </div>
-      )}
+        {showCustomPlatform && (
+          <div className="mt-2">
+            <Input
+              placeholder={`Enter ${platform === 'app' ? 'app' : platform === 'website' ? 'website' : 'store'} name`}
+              value={platformName}
+              onChange={(e) => onPlatformNameChange(e.target.value)}
+            />
+          </div>
+        )}
+      </div>
 
       <div className="space-y-2">
         <LabelWithTooltip htmlFor="subcategory" tooltip={spendingFormTooltips.spendCategory}>
